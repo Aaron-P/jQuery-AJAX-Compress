@@ -1,7 +1,7 @@
 /**
  * @version 1.0.0
  * @author Aaron Papp
- * @license AJAX Compress; a plugin for jQuery to compress AJAX request bodies.
+ * @license AJAX Compress; A plugin for jQuery to compress AJAX request bodies.
  * Copyright (C) 2013 Aaron Papp <https://github.com/Aaron-P>
  *
  * This program is free software: you can redistribute it and/or modify
