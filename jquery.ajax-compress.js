@@ -1946,19 +1946,19 @@
 	{
 		/* Private Variables */
 		var crc32         = new CRC32(),
-			deflate       = new Deflate(),
-			ID1           = "\x1F",												//Magic number 1
-			ID2           = "\x8B",												//Magic number 2
-			CM            = "\x08",												//Deflate compression type
-			FLG           = "\x00",												//No extra flags
-			MTIME         = "\x00\x00\x00\x00",									//Time not available
-			XFL_MIN       = "\x04",												//Fastest compression level
-			XFL_MAX       = "\x02",												//Maximum compression level
-			XFL_OTHER     = "\x00",												//Other compression level
-			OS            = "\x03",												//Unix OS
-			LEVEL_DEFAULT = 6,													//Default compression level
-			LEVEL_MIN     = 1,													//Minimum compression level
-			LEVEL_MAX     = 9;													//Maximum compression level
+		    deflate       = new Deflate(),
+		    ID1           = "\x1F",												//Magic number 1
+		    ID2           = "\x8B",												//Magic number 2
+		    CM            = "\x08",												//Deflate compression type
+		    FLG           = "\x00",												//No extra flags
+		    MTIME         = "\x00\x00\x00\x00",									//Time not available
+		    XFL_MIN       = "\x04",												//Fastest compression level
+		    XFL_MAX       = "\x02",												//Maximum compression level
+		    XFL_OTHER     = "\x00",												//Other compression level
+		    OS            = "\x03",												//Unix OS
+		    LEVEL_DEFAULT = 6,													//Default compression level
+		    LEVEL_MIN     = 1,													//Minimum compression level
+		    LEVEL_MAX     = 9;													//Maximum compression level
 
 		/* Private Methods */
 		function intToChars(value, length)
@@ -1978,9 +1978,9 @@
 //			console.profile("Gzip Profile");
 			console.time("gzip");
 			var header, cdata, footer,
-				xfl  = XFL_OTHER,
-				crc  = intToChars(crc32(data), 4),
-				size = intToChars(data.length % 0xFFFFFFFF, 4);
+			    xfl  = XFL_OTHER,
+			    crc  = intToChars(crc32(data), 4),
+			    size = intToChars(data.length % 0xFFFFFFFF, 4);
 
 			if (level === undefined)
 				level = LEVEL_DEFAULT;
@@ -2015,9 +2015,9 @@
 	$.ajaxPrefilter(function(options, originalOptions, jqXHR)
 	{
 		var requestType      = options.type.toUpperCase(),
-			compressionType  = DEFAULT_COMPRESSION,
-			compressionLevel = DEFAULT_COMPRESSION_LEVEL,
-			compressorObject, cdata;
+		    compressionType  = DEFAULT_COMPRESSION,
+		    compressionLevel = DEFAULT_COMPRESSION_LEVEL,
+		    compressorObject, cdata;
 
 		if (options.compress && (requestType === "POST" || requestType === "PUT"))
 		{
