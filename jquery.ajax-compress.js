@@ -1,5 +1,5 @@
 /**
- * @version 1.0.0
+ * @version
  * @author Aaron Papp
  * @license AJAX Compress; A plugin for jQuery to compress AJAX request bodies.
  * Copyright (C) 2013 Aaron Papp <https://github.com/Aaron-P>
@@ -23,7 +23,7 @@
  */
 (function($)
 {
-	"use strict";//Should we use this?  jQuery itself doesn't due to bugs.
+	"use strict";//Should we use this? jQuery itself doesn't due to bugs.
 	var DEFAULT_COMPRESSION       = "gzip",
 	    DEFAULT_COMPRESSION_LEVEL = 6;//Same as mod_deflate just because.
 
@@ -49,12 +49,12 @@
 		var BITS                = 16;
 		/* SMALL_MEM */
 		var LIT_BUFSIZE         = 0x2000;
-	//	var HASH_BITS           = 13;
+		//var HASH_BITS           = 13;
 		/* MEDIUM_MEM */
-	//	var LIT_BUFSIZE         = 0x4000;
-	//	var HASH_BITS           = 14;
+		//var LIT_BUFSIZE         = 0x4000;
+		//var HASH_BITS           = 14;
 		/* BIG_MEM */
-	//	var LIT_BUFSIZE         = 0x8000;
+		//var LIT_BUFSIZE         = 0x8000;
 		var HASH_BITS           = 15;
 		var DIST_BUFSIZE        = LIT_BUFSIZE;
 		var HASH_SIZE           = 1 << HASH_BITS;
@@ -156,36 +156,38 @@
 		var deflate_data;
 		var deflate_pos;
 
-		/* These are all constants, so this should never happen anyway. */
-		//if (LIT_BUFSIZE > INBUFSIZ)
-		//	throw new RangeError("error: INBUFSIZ is too small");
-		//if ((WSIZE << 1) > (1 << BITS))
-		//	throw new RangeError("error: WSIZE is too large");
-		//if (HASH_BITS > BITS - 1)
-		//	throw new RangeError("error: HASH_BITS is too large");
-		//if (HASH_BITS < 8 || MAX_MATCH !== 258)
-		//	throw new RangeError("error: Code too clever");
-
-		////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////////////
 
 		/* Private Classes */
+		/**
+		 * @constructor
+		 * @struct
+		 */
 		function DeflateCT()
 		{
-			this.fc = 0;															// frequency count or bit string
-			this.dl = 0;															// father node in Huffman tree or length of bit string
+			this.fc = 0;//Frequency count or bit string
+			this.dl = 0;//Father node in Huffman tree or length of bit string
 		}
 
+		/**
+		 * @constructor
+		 * @struct
+		 */
 		function DeflateTreeDesc()
 		{
-			this.dyn_tree    = null;												// the dynamic tree
-			this.static_tree = null;												// corresponding static tree or NULL
-			this.extra_bits  = null;												// extra bits for each code or NULL
-			this.extra_base  = 0;													// base index for extra_bits
-			this.elems       = 0;													// max number of elements in the tree
-			this.max_length  = 0;													// max bit length for the codes
-			this.max_code    = 0;													// largest code with non zero frequency
+			this.dyn_tree    = null;//The dynamic tree
+			this.static_tree = null;//Corresponding static tree or NULL
+			this.extra_bits  = null;//Extra bits for each code or NULL
+			this.extra_base  = 0;//Base index for extra_bits
+			this.elems       = 0;//Max number of elements in the tree
+			this.max_length  = 0;//Max bit length for the codes
+			this.max_code    = 0;//Largest code with non zero frequency
 		}
 
+		/**
+		 * @constructor
+		 * @struct
+		 */
 		function DeflateConfiguration(good_length, max_lazy, nice_length, max_chain)
 		{
 			/*
@@ -194,17 +196,21 @@
 			 * exclude worst case performance for pathological files. Better values may be
 			 * found for specific files.
 			 */
-			this.good_length = good_length;											// reduce lazy search above this match length
-			this.max_lazy    = max_lazy;											// do not perform lazy search above this match length
-			this.nice_length = nice_length;											// quit search above this match length
+			this.good_length = good_length;//Reduce lazy search above this match length
+			this.max_lazy    = max_lazy;//Do not perform lazy search above this match length
+			this.nice_length = nice_length;//Quit search above this match length
 			this.max_chain   = max_chain;
 		}
 
+		/**
+		 * @constructor
+		 * @struct
+		 */
 		function DeflateBuffer()
 		{
 			this.next = null;
 			this.len  = 0;
-			this.ptr  = [];															//new Array(OUTBUFSIZ);//ptr.length never called
+			this.ptr  = [];//new Array(OUTBUFSIZ); .length never called.
 			this.off  = 0;
 		}
 
@@ -226,48 +232,48 @@
 			initflag    = false;
 			eofile      = false;
 			if (outbuf !== null)
-				throw new Error("Deflate output buffer not null.");//return; //Should this an exception? //Why is this check even here?
+				throw new Error("Deflate output buffer not null.");//return; Should this an exception? Why is this check even here?
 
 			free_queue = null;
 			qhead      = null;
 			qtail      = null;
-			outbuf     = [];														//new Array(OUTBUFSIZ);// outbuf.length never called
-			window     = [];														//new Array(WINDOW_SIZE);// window.length never called
-			d_buf      = [];														//new Array(DIST_BUFSIZE);//d_buf.length never called
-			l_buf      = [];														//new Array(INBUFSIZ + INBUF_EXTRA);//l_buf.length never called
-			prev       = [];														//new Array(1 << BITS);//prev.length never called
+			outbuf     = [];//new Array(OUTBUFSIZ); .length never called.
+			window     = [];//new Array(WINDOW_SIZE); .length never called.
+			d_buf      = [];//new Array(DIST_BUFSIZE); .length never called
+			l_buf      = [];//new Array(INBUFSIZ + INBUF_EXTRA); .length never called.
+			prev       = [];//new Array(1 << BITS); .length never called.
 
-			dyn_ltree    = [];														//new Array(HEAP_SIZE);//dyn_ltree.length never called
+			dyn_ltree    = [];//new Array(HEAP_SIZE); .length never called.
 			for (i = 0; i < HEAP_SIZE; i++)
 				dyn_ltree[i]    = new DeflateCT();
 
-			dyn_dtree    = [];														//new Array(2 * D_CODES + 1);//dyn_dtree.length never called
+			dyn_dtree    = [];//new Array(2 * D_CODES + 1); .length never called.
 			for (i = 0; i < 2 * D_CODES + 1; i++)
 				dyn_dtree[i]    = new DeflateCT();
 
-			static_ltree = [];														//new Array(L_CODES + 2);//static_ltree.length never called
+			static_ltree = [];//new Array(L_CODES + 2); .length never called.
 			for (i = 0; i < L_CODES + 2; i++)
 				static_ltree[i] = new DeflateCT();
 
-			static_dtree = [];														//new Array(D_CODES);//static_dtree.length never called
+			static_dtree = [];//new Array(D_CODES); .length never called.
 			for (i = 0; i < D_CODES; i++)
 				static_dtree[i] = new DeflateCT();
 
-			bl_tree      = [];														//new Array(2 * BL_CODES + 1);//bl_tree.length never called
+			bl_tree      = [];//new Array(2 * BL_CODES + 1); .length never called.
 			for (i = 0; i < 2 * BL_CODES + 1; i++)
 				bl_tree[i]      = new DeflateCT();
 
 			l_desc      = new DeflateTreeDesc();
 			d_desc      = new DeflateTreeDesc();
 			bl_desc     = new DeflateTreeDesc();
-			bl_count    = [];														//new Array(MAX_BITS + 1);//bl_count.length never called
-			heap        = [];														//new Array(2 * L_CODES + 1);//heap.length never called
-			depth       = [];														//new Array(2 * L_CODES + 1);//depth.length never called
-			length_code = [];														//new Array(MAX_MATCH - MIN_MATCH + 1);//length_code.length never called
-			dist_code   = [];														//new Array(512);//dist_code.length never called
-			base_length = [];														//new Array(LENGTH_CODES);//base_length.length never called
-			base_dist   = [];														//new Array(D_CODES);//base_dist.length never called
-			flag_buf    = [];														//new Array(parseInt(LIT_BUFSIZE / 8, 10));//flag_buf.length never called
+			bl_count    = [];//new Array(MAX_BITS + 1); .length never called.
+			heap        = [];//new Array(2 * L_CODES + 1); .length never called.
+			depth       = [];//new Array(2 * L_CODES + 1); .length never called.
+			length_code = [];//new Array(MAX_MATCH - MIN_MATCH + 1); .length never called.
+			dist_code   = [];//new Array(512); .length never called.
+			base_length = [];//new Array(LENGTH_CODES); .length never called.
+			base_dist   = [];//new Array(D_CODES); .length never called.
+			flag_buf    = [];//new Array(parseInt(LIT_BUFSIZE / 8, 10)); .length never called.
 		}
 
 		function deflate_end()
@@ -321,15 +327,20 @@
 			return p;
 		}
 
-//		function head1(i)
-//		{
-//			return prev[WSIZE + i];
-//		}
+		//function head1(i)
+		//{
+		//	return prev[WSIZE + i];
+		//}
 
-//		function head2(i, val)
-//		{
-//			return prev[WSIZE + i] = val;
-//		}
+		//function head2(i, val)
+		//{
+		//	return prev[WSIZE + i] = val;
+		//}
+
+		//function update_hash(i, val)
+		//{
+		//	i = ((i << H_SHIFT) ^ (val & 0xFF)) & HASH_MASK;
+		//}
 
 		function put_byte(c)
 		{
@@ -346,7 +357,7 @@
 
 		function put_short(w)
 		{
-			/* Output a 16 bit value, lsb first */
+			//Output a 16 bit value, lsb first
 			w &= 0xFFFF;
 			if (outoff + outcnt < OUTBUFSIZ - 2)
 			{
@@ -360,30 +371,30 @@
 			}
 		}
 
-//		function insert_string()
-//		{
-//			/*
-//			 * Insert string s in the dictionary and set match_head to the previous head
-//			 * of the hash chain (the most recent string with same hash key). Return
-//			 * the previous length of the hash chain.
-//			 * IN  assertion: all calls to to insert_string are made with consecutive
-//			 *    input characters and the first MIN_MATCH bytes of s are valid
-//			 *    (except for the last MIN_MATCH-1 bytes of the input file).
-//			 */
-//			//UPDATE_HASH(ins_h, window[strstart + MIN_MATCH - 1]);
-//			ins_h = ((ins_h << H_SHIFT) ^ (window[strstart + MIN_MATCH - 1] & 0xFF)) & HASH_MASK;
-////			hash_head = head1(ins_h);
-//			hash_head = prev[WSIZE + ins_h];
-//			prev[strstart & WMASK] = hash_head;
-////			head2(ins_h, strstart);
-//			prev[WSIZE + ins_h] = strstart;
-//		}
+		//function insert_string()
+		//{
+		//	/*
+		//	 * Insert string s in the dictionary and set match_head to the previous head
+		//	 * of the hash chain (the most recent string with same hash key). Return
+		//	 * the previous length of the hash chain.
+		//	 * IN  assertion: all calls to to insert_string are made with consecutive
+		//	 *    input characters and the first MIN_MATCH bytes of s are valid
+		//	 *    (except for the last MIN_MATCH-1 bytes of the input file).
+		//	 */
+		//	//update_hash(ins_h, window[strstart + MIN_MATCH - 1]);
+		//	ins_h = ((ins_h << H_SHIFT) ^ (window[strstart + MIN_MATCH - 1] & 0xFF)) & HASH_MASK;
+		//	//hash_head = head1(ins_h);
+		//	hash_head = prev[WSIZE + ins_h];
+		//	prev[strstart & WMASK] = hash_head;
+		//	//head2(ins_h, strstart);
+		//	prev[WSIZE + ins_h] = strstart;
+		//}
 
-//		function send_code(c, tree)
-//		{
-//			/* Send a code of the given tree. c and tree must not have side effects */
-//			send_bits(tree[c].fc, tree[c].dl);
-//		}
+		//function send_code(c, tree)
+		//{
+		//	//Send a code of the given tree. c and tree must not have side effects
+		//	send_bits(tree[c].fc, tree[c].dl);
+		//}
 
 		function d_code(dist)
 		{
@@ -406,7 +417,7 @@
 
 		function read_buff(buff, offset, n)
 		{
-			/* read string data */
+			//Read string data
 			var i;
 			for (i = 0; i < n && deflate_pos < deflate_data.length; i++)
 				buff[offset + i] = deflate_data.charCodeAt(deflate_pos++) & 0xFF;
@@ -415,16 +426,16 @@
 
 		function lm_init()
 		{
-			/* Initialize the "longest match" routines for a new file */
+			//Initialize the "longest match" routines for a new file
 			var j;
 
-			/* Initialize the hash table. */
+			//Initialize the hash table.
 			for (j = 0; j < HASH_SIZE; j++)
-//				head2(j, NIL);
+				//head2(j, NIL);
 				prev[WSIZE + j] = NIL;
-			/* prev will be initialized on the fly */
+			//prev will be initialized on the fly
 
-			/* Set the default configuration parameters: */
+			//Set the default configuration parameters
 			max_lazy_match = CONFIGURATION_TABLE[compr_level].max_lazy;
 			good_match = CONFIGURATION_TABLE[compr_level].good_length;
 			if (!FULL_SEARCH)
@@ -442,18 +453,20 @@
 				return;
 			}
 			eofile = false;
-			/* Make sure that we always have enough lookahead. This is important
+			/*
+			 * Make sure that we always have enough lookahead. This is important
 			 * if input comes from a device such as a tty.
 			 */
 			while (lookahead < MIN_LOOKAHEAD && !eofile)
 				fill_window();
 
-			/* If lookahead < MIN_MATCH, ins_h is garbage, but this is
+			/*
+			 * If lookahead < MIN_MATCH, ins_h is garbage, but this is
 			 * not important since only literal bytes will be emitted.
 			 */
 			ins_h = 0;
 			for (j = 0; j < MIN_MATCH - 1; j++)
-				// UPDATE_HASH(ins_h, window[j]);
+				//update_hash(ins_h, window[j]);
 				ins_h = ((ins_h << H_SHIFT) ^ (window[j] & 0xFF)) & HASH_MASK;
 		}
 
@@ -467,13 +480,14 @@
 			 * IN assertions: cur_match is the head of the hash chain for the current
 			 *   string (strstart) and its distance is <= MAX_DIST, and prev_length >= 1
 			 */
-			var chain_length = max_chain_length; // max hash chain length
-			var scanp        = strstart; // current string
-			var matchp; // matched string
-			var len; // length of current match
-			var best_len     = prev_length; // best match length so far
+			var chain_length = max_chain_length;//Max hash chain length
+			var scanp        = strstart;//Current string
+			var best_len     = prev_length;//Best match length so far
+			var matchp;//Matched string
+			var len;//Length of current match
 
-			/* Stop when cur_match becomes <= limit. To simplify the code,
+			/*
+			 * Stop when cur_match becomes <= limit. To simplify the code,
 			 * we prevent matches with the string of window index 0.
 			 */
 			var limit     = (strstart > MAX_DIST ? strstart - MAX_DIST : NIL);
@@ -484,18 +498,16 @@
 
 			var i, broke;
 
-			/* Do not waste too much time if we already have a good match: */
+			//Do not waste too much time if we already have a good match
 			if (prev_length >= good_match)
 				chain_length >>= 2;
 
-			// Assert(encoder->strstart <= WINDOW_SIZE-MIN_LOOKAHEAD, "insufficient lookahead");
-
 			do
 			{
-				// Assert(cur_match < encoder->strstart, "no future");
 				matchp = cur_match;
 
-				/* Skip to next match if the match length cannot increase
+				/*
+				 * Skip to next match if the match length cannot increase
 				 * or if the match length is less than 2:
 				 */
 				if (window[matchp + best_len] !== scan_end ||
@@ -504,7 +516,8 @@
 					window[++matchp] !== window[scanp + 1])
 					continue;
 
-				/* The check at best_len-1 can be removed because it will be made
+				/*
+				 * The check at best_len-1 can be removed because it will be made
 				 * again later. (This heuristic is not always a win.)
 				 * It is not necessary to compare scan[2] and match[2] since they
 				 * are always equal when the other bytes match, given that
@@ -513,10 +526,11 @@
 				scanp += 2;
 				matchp++;
 
-				/* We check for insufficient lookahead only every 8th comparison;
+				/*
+				 * We check for insufficient lookahead only every 8th comparison;
 				 * the 256th check will be made at strstart+258.
 				 */
-		/*		do {} while (window[++scanp] === window[++matchp] &&
+				/*do {} while (window[++scanp] === window[++matchp] &&
 					window[++scanp] === window[++matchp] &&
 					window[++scanp] === window[++matchp] &&
 					window[++scanp] === window[++matchp] &&
@@ -582,42 +596,43 @@
 			 */
 			var n, m;
 
-			// Amount of free space at the end of the window.
+			//Amount of free space at the end of the window.
 			var more = WINDOW_SIZE - lookahead - strstart;
 
-			/* If the window is almost full and there is insufficient lookahead,
+			/*
+			 * If the window is almost full and there is insufficient lookahead,
 			 * move the upper half to the lower one to make room in the upper half.
 			 */
 			if (more === -1)
-				/* Very unlikely, but possible on 16 bit machine if strstart === 0
+				/*
+				 * Very unlikely, but possible on 16 bit machine if strstart === 0
 				 * and lookahead === 1 (input done one byte at time)
 				 */
 				more--;
 			else if (strstart >= WSIZE + MAX_DIST)
 			{
-				/* By the IN assertion, the window is not empty so we can't confuse
+				/*
+				 * By the IN assertion, the window is not empty so we can't confuse
 				 * more === 0 with more === 64K on a 16 bit machine.
 				 */
-				//	Assert(WINDOW_SIZE === (ulg)2*WSIZE, "no sliding with BIG_MEM");
-
-				//	System.arraycopy(window, WSIZE, window, 0, WSIZE);
 				for (n = 0; n < WSIZE; n++)
 					window[n] = window[n + WSIZE];
 
 				match_start -= WSIZE;
-				strstart    -= WSIZE; /* we now have strstart >= MAX_DIST: */
+				strstart    -= WSIZE;//We now have strstart >= MAX_DIST
 				block_start -= WSIZE;
 
 				for (n = 0; n < HASH_SIZE; n++)
 				{
-//					m = head1(n);
+					//m = head1(n);
 					m = prev[WSIZE + n];
-//					head2(n, m >= WSIZE ? m - WSIZE : NIL);
+					//head2(n, m >= WSIZE ? m - WSIZE : NIL);
 					prev[WSIZE + n] = m >= WSIZE ? m - WSIZE : NIL;
 				}
 				for (n = 0; n < WSIZE; n++)
 				{
-					/* If n is not on any hash chain, prev[n] is garbage but
+					/*
+					 * If n is not on any hash chain, prev[n] is garbage but
 					 * its value will never be used.
 					 */
 					m = prev[n];
@@ -625,7 +640,7 @@
 				}
 				more += WSIZE;
 			}
-			// At this point, more >= 2
+			//At this point, more >= 2
 			if (!eofile)
 			{
 				n = read_buff(window, strstart + lookahead, more);
@@ -646,57 +661,60 @@
 			 */
 			while (lookahead !== 0 && qhead === null)
 			{
-				var flush; // set if current block must be flushed
+				var flush;//Set if current block must be flushed
 
-				/* Insert the string window[strstart .. strstart+2] in the
+				/*
+				 * Insert the string window[strstart .. strstart+2] in the
 				 * dictionary, and set hash_head to the head of the hash chain:
 				 */
-//				insert_string();
+				//insert_string();
 				ins_h = ((ins_h << H_SHIFT) ^ (window[strstart + MIN_MATCH - 1] & 0xFF)) & HASH_MASK;
-//				hash_head = head1(ins_h);
+				//hash_head = head1(ins_h);
 				hash_head = prev[WSIZE + ins_h];
 				prev[strstart & WMASK] = hash_head;
-//				head2(ins_h, strstart);
+				//head2(ins_h, strstart);
 				prev[WSIZE + ins_h] = strstart;
 
-				/* Find the longest match, discarding those <= prev_length.
+				/*
+				 * Find the longest match, discarding those <= prev_length.
 				 * At this point we have always match_length < MIN_MATCH
 				 */
 				if (hash_head !== NIL && strstart - hash_head <= MAX_DIST)
 				{
-					/* To simplify the code, we prevent matches with the string
+					/*
+					 * To simplify the code, we prevent matches with the string
 					 * of window index 0 (in particular we have to avoid a match
 					 * of the string with itself at the start of the input file).
 					 */
 					match_length = longest_match(hash_head);
-					/* longest_match() sets match_start */
+					//longest_match() sets match_start
 					if (match_length > lookahead)
 						match_length = lookahead;
 				}
 				if (match_length >= MIN_MATCH)
 				{
-					//check_match(strstart, match_start, match_length);
-
 					flush = ct_tally(strstart - match_start, match_length - MIN_MATCH);
 					lookahead -= match_length;
 
-					/* Insert new strings in the hash table only if the match length
+					/*
+					 * Insert new strings in the hash table only if the match length
 					 * is not too large. This saves time but degrades compression.
 					 */
 					if (match_length <= max_lazy_match)
 					{
-						match_length--; // string at strstart already in hash table
+						match_length--;//String at strstart already in hash table
 						do
 						{
 							strstart++;
-//							insert_string();
+							//insert_string();
 							ins_h = ((ins_h << H_SHIFT) ^ (window[strstart + MIN_MATCH - 1] & 0xFF)) & HASH_MASK;
-//							hash_head = head1(ins_h);
+							//hash_head = head1(ins_h);
 							hash_head = prev[WSIZE + ins_h];
 							prev[strstart & WMASK] = hash_head;
-//							head2(ins_h, strstart);
+							//head2(ins_h, strstart);
 							prev[WSIZE + ins_h] = strstart;
-							/* strstart never exceeds WSIZE-MAX_MATCH, so there are
+							/*
+							 * strstart never exceeds WSIZE-MAX_MATCH, so there are
 							 * always MIN_MATCH bytes ahead. If lookahead < MIN_MATCH
 							 * these bytes are garbage, but it does not matter since
 							 * the next lookahead bytes will be emitted as literals.
@@ -710,18 +728,17 @@
 						strstart += match_length;
 						match_length = 0;
 						ins_h = window[strstart] & 0xFF;
-						// UPDATE_HASH(ins_h, window[strstart + 1]);
+						//update_hash(ins_h, window[strstart + 1]);
 						ins_h = ((ins_h << H_SHIFT) ^ (window[strstart + 1] & 0xFF)) & HASH_MASK;
 
 						//#if MIN_MATCH !== 3
-						//		Call UPDATE_HASH() MIN_MATCH-3 more times
+						//		Call update_hash() MIN_MATCH-3 more times
 						//#endif
-
 					}
 				}
 				else
 				{
-					/* No match, output a literal byte */
+					//No match, output a literal byte
 					flush = ct_tally(0, window[strstart] & 0xFF);
 					lookahead--;
 					strstart++;
@@ -732,7 +749,8 @@
 					block_start = strstart;
 				}
 
-				/* Make sure that we always have enough lookahead, except
+				/*
+				 * Make sure that we always have enough lookahead, except
 				 * at the end of the input file. We need MAX_MATCH bytes
 				 * for the next match, plus MIN_MATCH bytes to insert the
 				 * string following the next match.
@@ -744,55 +762,58 @@
 
 		function deflate_better()
 		{
-			/* Process the input block. */
+			//Process the input block.
 			while (lookahead !== 0 && qhead === null)
 			{
-				/* Insert the string window[strstart .. strstart+2] in the
+				/*
+				 * Insert the string window[strstart .. strstart+2] in the
 				 * dictionary, and set hash_head to the head of the hash chain:
 				 */
-//				insert_string();
+				//insert_string();
 				ins_h = ((ins_h << H_SHIFT) ^ (window[strstart + MIN_MATCH - 1] & 0xFF)) & HASH_MASK;
-//				hash_head = head1(ins_h);
+				//hash_head = head1(ins_h);
 				hash_head = prev[WSIZE + ins_h];
 				prev[strstart & WMASK] = hash_head;
-//				head2(ins_h, strstart);
+				//head2(ins_h, strstart);
 				prev[WSIZE + ins_h] = strstart;
 
-				/* Find the longest match, discarding those <= prev_length.
-				 */
+				//Find the longest match, discarding those <= prev_length.
 				prev_length  = match_length;
 				prev_match   = match_start;
 				match_length = MIN_MATCH - 1;
 
 				if (hash_head !== NIL && prev_length < max_lazy_match && strstart - hash_head <= MAX_DIST)
 				{
-					/* To simplify the code, we prevent matches with the string
+					/*
+					 * To simplify the code, we prevent matches with the string
 					 * of window index 0 (in particular we have to avoid a match
 					 * of the string with itself at the start of the input file).
 					 */
 					match_length = longest_match(hash_head);
-					/* longest_match() sets match_start */
+					//longest_match() sets match_start
 					if (match_length > lookahead)
 						match_length = lookahead;
 
-					/* Ignore a length 3 match if it is too distant: */
+					//Ignore a length 3 match if it is too distant
 					if (match_length === MIN_MATCH && strstart - match_start > TOO_FAR)
-						/* If prev_match is also MIN_MATCH, match_start is garbage
+						/*
+						 * If prev_match is also MIN_MATCH, match_start is garbage
 						 * but we will ignore the current match anyway.
 						 */
 						match_length--;
 				}
-				/* If there was a match at the previous step and the current
+				/*
+				 * If there was a match at the previous step and the current
 				 * match is not better, output the previous match:
 				 */
 				if (prev_length >= MIN_MATCH && match_length <= prev_length)
 				{
-					var flush; // set if current block must be flushed
+					var flush;//Set if current block must be flushed
 
-					// check_match(strstart - 1, prev_match, prev_length);
 					flush = ct_tally(strstart - 1 - prev_match, prev_length - MIN_MATCH);
 
-					/* Insert in hash table all strings up to the end of the match.
+					/*
+					 * Insert in hash table all strings up to the end of the match.
 					 * strstart-1 and strstart are already inserted.
 					 */
 					lookahead -= prev_length - 1;
@@ -800,14 +821,15 @@
 					do
 					{
 						strstart++;
-//						insert_string();
+						//insert_string();
 						ins_h = ((ins_h << H_SHIFT) ^ (window[strstart + MIN_MATCH - 1] & 0xFF)) & HASH_MASK;
-//						hash_head = head1(ins_h);
+						//hash_head = head1(ins_h);
 						hash_head = prev[WSIZE + ins_h];
 						prev[strstart & WMASK] = hash_head;
-//						head2(ins_h, strstart);
+						//head2(ins_h, strstart);
 						prev[WSIZE + ins_h] = strstart;
-						/* strstart never exceeds WSIZE-MAX_MATCH, so there are
+						/*
+						 * strstart never exceeds WSIZE-MAX_MATCH, so there are
 						 * always MIN_MATCH bytes ahead. If lookahead < MIN_MATCH
 						 * these bytes are garbage, but it does not matter since the
 						 * next lookahead bytes will always be emitted as literals.
@@ -825,7 +847,8 @@
 				}
 				else if (match_available)
 				{
-					/* If there was no match at the previous position, output a
+					/*
+					 * If there was no match at the previous position, output a
 					 * single literal. If there was a match but the current match
 					 * is longer, truncate the previous match to a single literal.
 					 */
@@ -839,7 +862,8 @@
 				}
 				else
 				{
-					/* There is no previous match to compare with, wait for
+					/*
+					 * There is no previous match to compare with, wait for
 					 * the next step to decide.
 					 */
 					match_available = true;
@@ -847,7 +871,8 @@
 					lookahead--;
 				}
 
-				/* Make sure that we always have enough lookahead, except
+				/*
+				 * Make sure that we always have enough lookahead, except
 				 * at the end of the input file. We need MAX_MATCH bytes
 				 * for the next match, plus MIN_MATCH bytes to insert the
 				 * string following the next match.
@@ -898,7 +923,7 @@
 				init_deflate();
 				initflag = true;
 				if (lookahead === 0)
-				{ // empty
+				{//Empty
 					complete = true;
 					return 0;
 				}
@@ -910,7 +935,7 @@
 			if (complete)
 				return n;
 
-			if (compr_level <= 3) // optimized for speed
+			if (compr_level <= 3)//Optimized for speed
 				deflate_fast();
 			else
 				deflate_better();
@@ -935,7 +960,6 @@
 				i = buff_size - n;
 				if (i > qhead.len)
 					i = qhead.len;
-				// System.arraycopy(qhead.ptr, qhead.off, buff, off + n, i);
 				for (j = 0; j < i; j++)
 					buff[off + n + j] = qhead.ptr[qhead.off + j];
 
@@ -959,7 +983,6 @@
 				i = buff_size - n;
 				if (i > outcnt - outoff)
 					i = outcnt - outoff;
-				// System.arraycopy(outbuf, outoff, buff, off + n, i);
 				for (j = 0; j < i; j++)
 					buff[off + n + j] = outbuf[outoff + j];
 				outoff += i;
@@ -977,14 +1000,14 @@
 			 * location of the internal file attribute (ascii/binary) and method
 			 * (DEFLATE/STORE).
 			 */
-			var n; // iterates over tree elements
-			var bits; // bit counter
-			var length; // length value
-			var code; // code value
-			var dist; // distance index
+			var n;//Iterates over tree elements
+			var bits;//Bit counter
+			var length;//Length value
+			var code;//Code value
+			var dist;//Distance index
 
 			if (static_dtree[0].dl !== 0)
-				return; // ct_init already called
+				return;//ct_init already called
 
 			l_desc.dyn_tree    = dyn_ltree;
 			l_desc.static_tree = static_ltree;
@@ -1010,7 +1033,7 @@
 			bl_desc.max_length  = MAX_BL_BITS;
 			bl_desc.max_code    = 0;
 
-			// Initialize the mapping length (0..255) -> length code (0..28)
+			//Initialize the mapping length (0..255) -> length code (0..28)
 			length = 0;
 			for (code = 0; code < LENGTH_CODES - 1; code++)
 			{
@@ -1018,15 +1041,15 @@
 				for (n = 0; n < (1 << EXTRA_LBITS[code]); n++)
 					length_code[length++] = code;
 			}
-			// Assert (length === 256, "ct_init: length !== 256");
 
-			/* Note that the length 255 (match length 258) can be represented
+			/*
+			 * Note that the length 255 (match length 258) can be represented
 			 * in two different ways: code 284 + 5 bits or code 285, so we
 			 * overwrite length_code[255] to use the best encoding:
 			 */
 			length_code[length - 1] = code;
 
-			/* Initialize the mapping dist (0..32K) -> dist code (0..29) */
+			//Initialize the mapping dist (0..32K) -> dist code (0..29)
 			dist = 0;
 			for (code = 0; code < 16; code++)
 			{
@@ -1034,17 +1057,15 @@
 				for (n = 0; n < (1 << EXTRA_DBITS[code]); n++)
 					dist_code[dist++] = code;
 			}
-			// Assert (dist === 256, "ct_init: dist !== 256");
-			// from now on, all distances are divided by 128
+			//From now on, all distances are divided by 128
 			for (dist >>= 7; code < D_CODES; code++)
 			{
 				base_dist[code] = dist << 7;
 				for (n = 0; n < (1 << (EXTRA_DBITS[code] - 7)); n++)
 					dist_code[256 + dist++] = code;
 			}
-			// Assert (dist === 256, "ct_init: 256+dist !== 512");
 
-			// Construct the codes of the static literal tree
+			//Construct the codes of the static literal tree
 			for (bits = 0; bits <= MAX_BITS; bits++)
 				bl_count[bits] = 0;
 			n = 0;
@@ -1068,29 +1089,30 @@
 				static_ltree[n++].dl = 8;
 				bl_count[8]++;
 			}
-			/* Codes 286 and 287 do not exist, but we must include them in the
+			/*
+			 * Codes 286 and 287 do not exist, but we must include them in the
 			 * tree construction to get a canonical Huffman tree (longest code
 			 * all ones)
 			 */
 			gen_codes(static_ltree, L_CODES + 1);
 
-			/* The static distance tree is trivial: */
+			//The static distance tree is trivial
 			for (n = 0; n < D_CODES; n++)
 			{
 				static_dtree[n].dl = 5;
 				static_dtree[n].fc = bi_reverse(n, 5);
 			}
 
-			// Initialize the first block of the first file:
+			//Initialize the first block of the first file
 			init_block();
 		}
 
 		function init_block()
 		{
-			/* Initialize a new block. */
-			var n; // iterates over tree elements
+			//Initialize a new block.
+			var n;//Iterates over tree elements
 
-			// Initialize the trees.
+			//Initialize the trees.
 			for (n = 0; n < L_CODES; n++)
 				dyn_ltree[n].fc = 0;
 			for (n = 0; n < D_CODES; n++)
@@ -1117,30 +1139,30 @@
 			 * @param k- node to move down
 			 */
 			var v = heap[k];
-			var j = k << 1; // left son of k
+			var j = k << 1;//Left son of k
 
 			while (j <= heap_len)
 			{
-				// Set j to the smallest of the two sons:
+				//Set j to the smallest of the two sons:
 				if (j < heap_len && smaller(tree, heap[j + 1], heap[j]))
 					j++;
 
-				// Exit if v is smaller than both sons
+				//Exit if v is smaller than both sons
 				if (smaller(tree, v, heap[j]))
 					break;
 
-				// Exchange v with the smallest son
+				//Exchange v with the smallest son
 				heap[k] = heap[j];
 				k = j;
 
-				// And continue down the tree, setting j to the left son of k
+				//And continue down the tree, setting j to the left son of k
 				j <<= 1;
 			}
 			heap[k] = v;
 		}
 
 		function gen_bitlen(desc)
-		{ // the tree descriptor
+		{//The tree descriptor
 			/*
 			 * Compute the optimal bit lengths for a tree and update the total bit length
 			 * for the current block.
@@ -1151,26 +1173,27 @@
 			 *     The length opt_len is updated; static_len is also updated if stree is
 			 *     not null.
 			 */
-			var tree = desc.dyn_tree;
-			var extra = desc.extra_bits;
-			var base = desc.extra_base;
-			var max_code = desc.max_code;
+			var tree       = desc.dyn_tree;
+			var extra      = desc.extra_bits;
+			var base       = desc.extra_base;
+			var max_code   = desc.max_code;
 			var max_length = desc.max_length;
-			var stree = desc.static_tree;
-			var h; // heap index
-			var n, m; // iterate over the tree elements
-			var bits; // bit length
-			var xbits; // extra bits
-			var f; // frequency
-			var overflow = 0; // number of elements with bit length too large
+			var stree      = desc.static_tree;
+			var overflow   = 0;//Number of elements with bit length too large
+			var h;//Heap index
+			var n, m;//Iterate over the tree elements
+			var bits;//Bit length
+			var xbits;//Extra bits
+			var f;//Frequency
 
 			for (bits = 0; bits <= MAX_BITS; bits++)
 				bl_count[bits] = 0;
 
-			/* In a first pass, compute the optimal bit lengths (which may
+			/*
+			 * In a first pass, compute the optimal bit lengths (which may
 			 * overflow in the case of the bit length tree).
 			 */
-			tree[heap[heap_max]].dl = 0; // root of the heap
+			tree[heap[heap_max]].dl = 0;//Root of the heap
 
 			for (h = heap_max + 1; h < HEAP_SIZE; h++)
 			{
@@ -1182,10 +1205,10 @@
 					overflow++;
 				}
 				tree[n].dl = bits;
-				// We overwrite tree[n].dl which is no longer needed
+				//We overwrite tree[n].dl which is no longer needed
 
 				if (n > max_code)
-					continue; // not a leaf node
+					continue;//Not a leaf node
 
 				bl_count[bits]++;
 				xbits = 0;
@@ -1199,25 +1222,27 @@
 			if (overflow === 0)
 				return;
 
-			// This happens for example on obj2 and pic of the Calgary corpus
+			//This happens for example on obj2 and pic of the Calgary corpus
 
-			// Find the first bit length which could increase:
+			//Find the first bit length which could increase
 			do
 			{
 				bits = max_length - 1;
 				while (bl_count[bits] === 0)
 					bits--;
-				bl_count[bits]--; // move one leaf down the tree
-				bl_count[bits + 1] += 2; // move one overflow item as its brother
+				bl_count[bits]--;//Move one leaf down the tree
+				bl_count[bits + 1] += 2;//Move one overflow item as its brother
 				bl_count[max_length]--;
-				/* The brother of the overflow item also moves one step up,
+				/*
+				 * The brother of the overflow item also moves one step up,
 				 * but this does not affect bl_count[max_length]
 				 */
 				overflow -= 2;
 			}
 			while (overflow > 0);
 
-			/* Now recompute all bit lengths, scanning in increasing frequency.
+			/*
+			 * Now recompute all bit lengths, scanning in increasing frequency.
 			 * h is still equal to HEAP_SIZE. (It is simpler to reconstruct all
 			 * lengths instead of fixing only the wrong ones. This idea is taken
 			 * from 'ar' written by Haruhiko Okumura.)
@@ -1252,12 +1277,13 @@
 			 * @param tree- the tree to decorate
 			 * @param max_code- largest code with non-zero frequency
 			 */
-			var next_code = [];//new Array(MAX_BITS + 1);//next_code.length never called // next code value for each bit length
-			var code      = 0; // running code value
-			var bits; // bit index
-			var n; // code index
+			var next_code = [];//Next code value for each bit length. new Array(MAX_BITS + 1); .length never called
+			var code      = 0;//Running code value
+			var bits;//Bit index
+			var n;//Code index
 
-			/* The distribution counts are first used to generate the code values
+			/*
+			 * The distribution counts are first used to generate the code values
 			 * without bit reversal.
 			 */
 			for (bits = 1; bits <= MAX_BITS; bits++)
@@ -1266,27 +1292,22 @@
 				next_code[bits] = code;
 			}
 
-			/* Check that the bit counts in bl_count are consistent. The last code
+			/*
+			 * Check that the bit counts in bl_count are consistent. The last code
 			 * must be all ones.
 			 */
-			// Assert (code + encoder->bl_count[MAX_BITS]-1 === (1<<MAX_BITS)-1,
-			// "inconsistent bit counts");
-			// Tracev((stderr,"\ngen_codes: max_code %d ", max_code));
-
 			for (n = 0; n <= max_code; n++)
 			{
 				var len = tree[n].dl;
 				if (len === 0)
 					continue;
-				// Now reverse the bits
+				//Now reverse the bits
 				tree[n].fc = bi_reverse(next_code[len]++, len);
-
-				// Tracec(tree !== static_ltree, (stderr,"\nn %3d %c l %2d c %4x (%x) ", n, (isgraph(n) ? n : ' '), len, tree[n].fc, next_code[len]-1));
 			}
 		}
 
 		function build_tree(desc)
-		{ // the tree descriptor
+		{//The tree descriptor
 			/*
 			 * Construct one Huffman tree and assigns the code bit strings and lengths.
 			 * Update the total bit length for the current block.
@@ -1298,11 +1319,12 @@
 			var tree = desc.dyn_tree;
 			var stree = desc.static_tree;
 			var elems = desc.elems;
-			var n, m; // iterate over heap elements
-			var max_code = -1; // largest code with non zero frequency
-			var node = elems; // next internal node of the tree
+			var n, m;//Iterate over heap elements
+			var max_code = -1;//Largest code with non zero frequency
+			var node = elems;//Next internal node of the tree
 
-			/* Construct the initial heap, with least frequent element in
+			/*
+			 * Construct the initial heap, with least frequent element in
 			 * heap[SMALLEST]. The sons of heap[n] are heap[2*n] and heap[2*n+1].
 			 * heap[0] is not used.
 			 */
@@ -1320,7 +1342,8 @@
 					tree[n].dl = 0;
 			}
 
-			/* The pkzip format requires that at least one distance code exists,
+			/*
+			 * The pkzip format requires that at least one distance code exists,
 			 * and that at least one bit should be sent even if there is only one
 			 * possible code. So to avoid special checks later on we force at least
 			 * two codes of non zero frequency.
@@ -1333,17 +1356,19 @@
 				opt_len--;
 				if (stree !== null)
 					static_len -= stree[xnew].dl;
-				// new is 0 or 1 so it does not have extra bits
+				//New is 0 or 1 so it does not have extra bits
 			}
 			desc.max_code = max_code;
 
-			/* The elements heap[heap_len/2+1 .. heap_len] are leaves of the tree,
+			/*
+			 * The elements heap[heap_len/2+1 .. heap_len] are leaves of the tree,
 			 * establish sub-heaps of increasing lengths:
 			 */
 			for (n = heap_len >> 1; n >= 1; n--)
 				pqdownheap(tree, n);
 
-			/* Construct the Huffman tree by repeatedly combining the least two
+			/*
+			 * Construct the Huffman tree by repeatedly combining the least two
 			 * frequent nodes.
 			 */
 			do
@@ -1352,22 +1377,21 @@
 				heap[SMALLEST] = heap[heap_len--];
 				pqdownheap(tree, SMALLEST);
 
-				m = heap[SMALLEST]; // m = node of next least frequency
+				m = heap[SMALLEST];//m = node of next least frequency
 
-				// keep the nodes sorted by frequency
+				//Keep the nodes sorted by frequency
 				heap[--heap_max] = n;
 				heap[--heap_max] = m;
 
-				// Create a new node father of n and m
+				//Create a new node father of n and m
 				tree[node].fc = tree[n].fc + tree[m].fc;
-				//	depth[node] = (char)(MAX(depth[n], depth[m]) + 1);
 				if (depth[n] > depth[m] + 1)
 					depth[node] = depth[n];
 				else
 					depth[node] = depth[m] + 1;
 				tree[n].dl = tree[m].dl = node;
 
-				// and insert the new node in the heap
+				//And insert the new node in the heap
 				heap[SMALLEST] = node++;
 				pqdownheap(tree, SMALLEST);
 
@@ -1376,12 +1400,13 @@
 
 			heap[--heap_max] = heap[SMALLEST];
 
-			/* At this point, the fields freq and dad are set. We can now
+			/*
+			 * At this point, the fields freq and dad are set. We can now
 			 * generate the bit lengths.
 			 */
 			gen_bitlen(desc);
 
-			// The field len is now set, we can generate the bit codes
+			//The field len is now set, we can generate the bit codes
 			gen_codes(tree, max_code);
 		}
 
@@ -1396,20 +1421,20 @@
 			 * @param tree- the tree to be scanned
 			 * @param max_code- and its largest code of non zero frequency
 			 */
-			var n; // iterates over all tree elements
-			var prevlen   = -1; // last emitted length
-			var curlen; // length of current code
-			var nextlen   = tree[0].dl; // length of next code
-			var count     = 0; // repeat count of the current code
-			var max_count = 7; // max repeat count
-			var min_count = 4; // min repeat count
+			var n;//Iterates over all tree elements
+			var curlen;//Length of current code
+			var prevlen   = -1;//Last emitted length
+			var nextlen   = tree[0].dl;//Length of next code
+			var count     = 0;//Eepeat count of the current code
+			var max_count = 7;//Max repeat count
+			var min_count = 4;//Min repeat count
 
 			if (nextlen === 0)
 			{
 				max_count = 138;
 				min_count = 3;
 			}
-			tree[max_code + 1].dl = 0xFFFF; // guard
+			tree[max_code + 1].dl = 0xFFFF;//Guard
 
 			for (n = 0; n <= max_code; n++)
 			{
@@ -1458,16 +1483,16 @@
 			 * @param tree- the tree to be scanned
 			 * @param max_code- and its largest code of non zero frequency
 			 */
-			var n; // iterates over all tree elements
-			var prevlen   = -1; // last emitted length
-			var curlen; // length of current code
-			var nextlen   = tree[0].dl; // length of next code
-			var count     = 0; // repeat count of the current code
-			var max_count = 7; // max repeat count
-			var min_count = 4; // min repeat count
+			var n;//Iterates over all tree elements
+			var curlen;//Length of current code
+			var prevlen   = -1;//Last emitted length
+			var nextlen   = tree[0].dl;//Length of next code
+			var count     = 0;//Repeat count of the current code
+			var max_count = 7;//Max repeat count
+			var min_count = 4;//Min repeat count
 
-			/* tree[max_code+1].dl = -1; */
-			/* guard already set */
+			//tree[max_code+1].dl = -1;
+			//Guard already set
 			if (nextlen === 0)
 			{
 				max_count = 138;
@@ -1479,14 +1504,12 @@
 				curlen = nextlen;
 				nextlen = tree[n + 1].dl;
 				if (++count < max_count && curlen === nextlen)
-				{
 					continue;
-				}
 				else if (count < min_count)
 				{
 					do
 					{
-//						send_code(curlen, bl_tree);
+						//send_code(curlen, bl_tree);
 						send_bits(bl_tree[curlen].fc, bl_tree[curlen].dl);
 					}
 					while (--count !== 0);
@@ -1495,24 +1518,23 @@
 				{
 					if (curlen !== prevlen)
 					{
-//						send_code(curlen, bl_tree);
+						//send_code(curlen, bl_tree);
 						send_bits(bl_tree[curlen].fc, bl_tree[curlen].dl);
 						count--;
 					}
-					// Assert(count >= 3 && count <= 6, " 3_6?");
-//					send_code(REP_3_6, bl_tree);
+					//send_code(REP_3_6, bl_tree);
 					send_bits(bl_tree[REP_3_6].fc, bl_tree[REP_3_6].dl);
 					send_bits(count - 3, 2);
 				}
 				else if (count <= 10)
 				{
-//					send_code(REPZ_3_10, bl_tree);
+					//send_code(REPZ_3_10, bl_tree);
 					send_bits(bl_tree[REPZ_3_10].fc, bl_tree[REPZ_3_10].dl);
 					send_bits(count - 3, 3);
 				}
 				else
 				{
-//					send_code(REPZ_11_138, bl_tree);
+					//send_code(REPZ_11_138, bl_tree);
 					send_bits(bl_tree[REPZ_11_138].fc, bl_tree[REPZ_11_138].dl);
 					send_bits(count - 11, 7);
 				}
@@ -1542,19 +1564,21 @@
 			 * Construct the Huffman tree for the bit lengths and return the index in
 			 * BL_ORDER of the last bit length code to send.
 			 */
-			var max_blindex; // index of last bit length code of non zero freq
+			var max_blindex;//Index of last bit length code of non zero freq
 
-			// Determine the bit length frequencies for literal and distance trees
+			//Determine the bit length frequencies for literal and distance trees
 			scan_tree(dyn_ltree, l_desc.max_code);
 			scan_tree(dyn_dtree, d_desc.max_code);
 
-			// Build the bit length tree:
+			//Build the bit length tree:
 			build_tree(bl_desc);
-			/* opt_len now includes the length of the tree representations, except
+			/*
+			 * opt_len now includes the length of the tree representations, except
 			 * the lengths of the bit lengths codes and the 5+5+4 bits for the counts.
 			 */
 
-			/* Determine the number of bit length codes to send. The pkzip format
+			/*
+			 * Determine the number of bit length codes to send. The pkzip format
 			 * requires that at least 4 bit length codes be sent. (appnote.txt says
 			 * 3 but the actual value used is 4.)
 			 */
@@ -1563,98 +1587,83 @@
 				if (bl_tree[BL_ORDER[max_blindex]].dl !== 0)
 					break;
 			}
-			/* Update opt_len to include the bit length tree and counts */
+			//Update opt_len to include the bit length tree and counts
 			opt_len += 3 * (max_blindex + 1) + 5 + 5 + 4;
-			// Tracev((stderr, "\ndyn trees: dyn %ld, stat %ld",
-			// encoder->opt_len, encoder->static_len));
 
 			return max_blindex;
 		}
 
 		function send_all_trees(lcodes, dcodes, blcodes)
-		{ // number of codes for each tree
+		{//Number of codes for each tree
 			/*
 			 * Send the header for a block using dynamic Huffman trees: the counts, the
 			 * lengths of the bit length codes, the literal tree and the distance tree.
 			 * IN assertion: lcodes >= 257, dcodes >= 1, blcodes >= 4.
 			 */
-			var rank; // index in BL_ORDER
+			var rank;//Index in BL_ORDER
 
-			// Assert (lcodes >= 257 && dcodes >= 1 && blcodes >= 4, "not enough codes");
-			// Assert (lcodes <= L_CODES && dcodes <= D_CODES && blcodes <= BL_CODES, "too many codes");
-			// Tracev((stderr, "\nbl counts: "));
-			send_bits(lcodes  - 257, 5); // not +255 as stated in appnote.txt
-			send_bits(dcodes  - 1  , 5);
-			send_bits(blcodes - 4  , 4); // not -3 as stated in appnote.txt
+			send_bits(lcodes - 257, 5);//Not +255 as stated in appnote.txt
+			send_bits(dcodes - 1, 5);
+			send_bits(blcodes - 4, 4);//Not -3 as stated in appnote.txt
 			for (rank = 0; rank < blcodes; rank++)
-				// Tracev((stderr, "\nbl code %2d ", BL_ORDER[rank]));
 				send_bits(bl_tree[BL_ORDER[rank]].dl, 3);
 
-			// send the literal tree
+			//Send the literal tree
 			send_tree(dyn_ltree, lcodes - 1);
 
-			// send the distance tree
+			//Send the distance tree
 			send_tree(dyn_dtree, dcodes - 1);
 		}
 
 		function flush_block(eof)
-		{ // true if this is the last block for a file
+		{//True if this is the last block for a file
 			/*
 			 * Determine the best encoding for the current block: dynamic trees, static
 			 * trees or store, and output the encoded block to the zip file.
 			 */
-			var opt_lenb, static_lenb; // opt_len and static_len in bytes
-			var max_blindex; // index of last bit length code of non zero freq
-			var stored_len; // length of input block
+			var opt_lenb, static_lenb;//opt_len and static_len in bytes
+			var max_blindex;//Index of last bit length code of non zero freq
+			var stored_len;//Length of input block
 			var i;
 
 			stored_len = strstart - block_start;
-			flag_buf[last_flags] = flags; // Save the flags for the last 8 items
+			flag_buf[last_flags] = flags;//Save the flags for the last 8 items
 
-			// Construct the literal and distance trees
+			//Construct the literal and distance trees
 			build_tree(l_desc);
-			// Tracev((stderr, "\nlit data: dyn %ld, stat %ld",
-			// encoder->opt_len, encoder->static_len));
-
 			build_tree(d_desc);
-			// Tracev((stderr, "\ndist data: dyn %ld, stat %ld", encoder->opt_len, encoder->static_len));
-			/* At this point, opt_len and static_len are the total bit lengths of
+			/*
+			 * At this point, opt_len and static_len are the total bit lengths of
 			 * the compressed block data, excluding the tree representations.
 			 */
 
-			/* Build the bit length tree for the above two trees, and get the index
+			/*
+			 * Build the bit length tree for the above two trees, and get the index
 			 * in BL_ORDER of the last bit length code to send.
 			 */
 			max_blindex = build_bl_tree();
 
-			// Determine the best encoding. Compute first the block length in bytes
+			//Determine the best encoding. Compute first the block length in bytes
 			opt_lenb = (opt_len + 3 + 7) >> 3;
 			static_lenb = (static_len + 3 + 7) >> 3;
-
-			// Trace((stderr, "\nopt %lu(%lu) stat %lu(%lu) stored %lu lit %u dist %u ", opt_lenb, encoder->opt_len, static_lenb, encoder->static_len, stored_len, encoder->last_lit, encoder->last_dist));
 
 			if (static_lenb <= opt_lenb)
 				opt_lenb = static_lenb;
 			if (stored_len + 4 <= opt_lenb && block_start >= 0)
-			{ // 4: two words for the lengths
-				/* The test buf !== NULL is only necessary if LIT_BUFSIZE > WSIZE.
+			{//4: two words for the lengths
+				/*
+				 * The test buf !== NULL is only necessary if LIT_BUFSIZE > WSIZE.
 				 * Otherwise we can't have processed more than WSIZE input bytes since
 				 * the last block flush, because compression would have been
 				 * successful. If LIT_BUFSIZE <= WSIZE, it is never too late to
 				 * transform a block into a stored block.
 				 */
-				send_bits((STORED_BLOCK << 1) + eof, 3); /* send block type */
-				bi_windup(); /* align on byte boundary */
+				send_bits((STORED_BLOCK << 1) + eof, 3);//Send block type
+				bi_windup();//Align on byte boundary
 				put_short(stored_len);
 				put_short(~stored_len);
 
-				// copy block
-				/*
-					p = &window[block_start];
-					for (i = 0; i < stored_len; i++) {
-						put_byte(p[i]);
-					}
-				*/
+				//Copy block
 				for (i = 0; i < stored_len; i++)
 					put_byte(window[block_start + i]);
 			}
@@ -1687,13 +1696,12 @@
 			 */
 			l_buf[last_lit++] = lc;
 			if (dist === 0)
-				// lc is the unmatched char
+				//lc is the unmatched char
 				dyn_ltree[lc].fc++;
 			else
 			{
-				// Here, lc is the match length - MIN_MATCH
-				dist--; // dist = match distance - 1
-				// Assert((ush)dist < (ush)MAX_DIST && (ush)lc <= (ush)(MAX_MATCH-MIN_MATCH) && (ush)d_code(dist) < (ush)D_CODES,  "ct_tally: bad match");
+				//Here, lc is the match length - MIN_MATCH
+				dist--;//dist = match distance - 1
 
 				dyn_ltree[length_code[lc] + LITERALS + 1].fc++;
 				dyn_dtree[d_code(dist)].fc++;
@@ -1703,17 +1711,17 @@
 			}
 			flag_bit <<= 1;
 
-			// Output the flags if they fill a byte
+			//Output the flags if they fill a byte
 			if ((last_lit & 7) === 0)
 			{
 				flag_buf[last_flags++] = flags;
 				flags                  = 0;
 				flag_bit               = 1;
 			}
-			// Try to guess if it is profitable to stop the current block here
+			//Try to guess if it is profitable to stop the current block here
 			if (compr_level > 2 && (last_lit & 0xFFF) === 0)
 			{
-				// Compute an upper bound for the compressed length
+				//Compute an upper bound for the compressed length
 				var out_length = last_lit * 8;
 				var in_length = strstart - block_start;
 				var dcode;
@@ -1721,13 +1729,12 @@
 				for (dcode = 0; dcode < D_CODES; dcode++)
 					out_length += dyn_dtree[dcode].fc * (5 + EXTRA_DBITS[dcode]);
 				out_length >>= 3;
-				// Trace((stderr,"\nlast_lit %u, last_dist %u, in %ld, out ~%ld(%ld%%) ", encoder->last_lit, encoder->last_dist, in_length, out_length, 100L - out_length*100L/in_length));
-		//		if (last_dist < parseInt(last_lit / 2, 10) && out_length < parseInt(in_length / 2, 10))
 				if (last_dist < ~~(last_lit / 2) && out_length < ~~(in_length / 2))
 					return true;
 			}
 			return (last_lit === LIT_BUFSIZE - 1 || last_dist === DIST_BUFSIZE);
-			/* We avoid equality with LIT_BUFSIZE because of wraparound at 64K
+			/*
+			 * We avoid equality with LIT_BUFSIZE because of wraparound at 64K
 			 * on 16 bit machines and because stored blocks are restricted to
 			 * 64K-1 bytes.
 			 */
@@ -1741,14 +1748,14 @@
 			 * @param ltree- literal tree
 			 * @param dtree- distance tree
 			 */
-			var dist; // distance of matched string
-			var lc; // match length or unmatched char (if dist === 0)
-			var lx   = 0; // running index in l_buf
-			var dx   = 0; // running index in d_buf
-			var fx   = 0; // running index in flag_buf
-			var flag = 0; // current flags
-			var code; // the code to send
-			var extra; // number of extra bits to send
+			var dist;//Distance of matched string
+			var lc;//Match length or unmatched char (if dist === 0)
+			var lx   = 0;//Running index in l_buf
+			var dx   = 0;//Running index in d_buf
+			var fx   = 0;//Running index in flag_buf
+			var flag = 0;//Current flags
+			var code;//The code to send
+			var extra;//Number of extra bits to send
 
 			if (last_lit !== 0)
 			{
@@ -1758,41 +1765,39 @@
 						flag = flag_buf[fx++];
 					lc = l_buf[lx++] & 0xFF;
 					if ((flag & 1) === 0)
-//						send_code(lc, ltree); /* send a literal byte */
+						//send_code(lc, ltree);//Send a literal byte
 						send_bits(ltree[lc].fc, ltree[lc].dl);
-						// Tracecv(isgraph(lc), (stderr," '%c' ", lc));
 					else
 					{
-						// Here, lc is the match length - MIN_MATCH
+						//Here, lc is the match length - MIN_MATCH
 						code = length_code[lc];
-//						send_code(code + LITERALS + 1, ltree); // send the length code
+						//send_code(code + LITERALS + 1, ltree);//Send the length code
 						send_bits(ltree[code + LITERALS + 1].fc, ltree[code + LITERALS + 1].dl);
 						extra = EXTRA_LBITS[code];
 						if (extra !== 0)
 						{
 							lc -= base_length[code];
-							send_bits(lc, extra); // send the extra length bits
+							send_bits(lc, extra);//Send the extra length bits
 						}
 						dist = d_buf[dx++];
-						// Here, dist is the match distance - 1
+						//Here, dist is the match distance - 1
 						code = d_code(dist);
-						// Assert (code < D_CODES, "bad d_code");
 
-//						send_code(code, dtree); // send the distance code
+						//send_code(code, dtree);//Send the distance code
 						send_bits(dtree[code].fc, dtree[code].dl);
 						extra = EXTRA_DBITS[code];
 						if (extra !== 0)
 						{
 							dist -= base_dist[code];
-							send_bits(dist, extra); // send the extra distance bits
+							send_bits(dist, extra);//Send the extra distance bits
 						}
-					} // literal or match pair ?
+					}//Literal or match pair?
 					flag >>= 1;
 				}
 				while (lx < last_lit);
 			}
 
-//			send_code(END_BLOCK, ltree);
+			//send_code(END_BLOCK, ltree);
 			send_bits(ltree[END_BLOCK].fc, ltree[END_BLOCK].dl);
 		}
 
@@ -1805,8 +1810,9 @@
 			 * @param value- value to send
 			 * @param length- number of bits
 			 */
-			var Buf_size = 16; // bit size of bi_buf
-			/* If not enough room in bi_buf, use (valid) bits from bi_buf and
+			var Buf_size = 16;//Bit size of bi_buf
+			/*
+			 * If not enough room in bi_buf, use (valid) bits from bi_buf and
 			 * (16 - bi_valid) bits from value, leaving (width - (16-bi_valid))
 			 * unused bits in value.
 			 */
@@ -1847,7 +1853,7 @@
 
 		function bi_windup()
 		{
-			/* Write out any remaining bits in an incomplete byte. */
+			//Write out any remaining bits in an incomplete byte.
 			if (bi_valid > 8)
 				put_short(bi_buf);
 			else if (bi_valid > 0)
@@ -1867,12 +1873,13 @@
 				else
 					qtail = qtail.next = q;
 				q.len = outcnt - outoff;
-				// System.arraycopy(outbuf, outoff, q.ptr, 0, q.len);
 				for (i = 0; i < q.len; i++)
 					q.ptr[i] = outbuf[outoff + i];
 				outcnt = outoff = 0;
 			}
 		}
+
+		////////////////////////////////////////////////////////////////////////
 
 		/* Public Methods */
 		this.compress = function(data, level)
@@ -1890,11 +1897,11 @@
 			buff = [];
 			while ((i = deflate_internal(buff, 0, 1024)) > 0)
 			{
-//				out += String.fromCharCode.apply(null, buff);//Why does this break it?
+				//out += String.fromCharCode.apply(null, buff);//Why does this break?
 				for (j = 0; j < i; j++)
 					out += String.fromCharCode(buff[j]);
 			}
-			deflate_data = null; // G.C.
+			deflate_data = null;//G.C.
 			console.profileEnd();
 			console.timeEnd("deflate");
 			return out;
@@ -1910,6 +1917,8 @@
 	{
 		/* Private Constants */
 		var POLYNOMIAL = 0xEDB88320;
+
+		////////////////////////////////////////////////////////////////////////
 
 		/* Public Methods */
 		this.crc32 = function(data)
@@ -1934,7 +1943,7 @@
 			return ((crc ^ -1) >>> 0);//Flip the bits of the CRC.
 		};
 
-		/* Return the crc32 method since that is all this class will be for. */
+		//Return the crc32 method since that is all this class will be for.
 		return this.crc32;
 	}
 	/* End MIT Licensed Code */
@@ -1944,21 +1953,23 @@
 	 */
 	function Gzip()
 	{
-		/* Private Variables */
+		/* Private Constants */
 		var crc32         = new CRC32(),
 		    deflate       = new Deflate(),
-		    ID1           = "\x1F",												//Magic number 1
-		    ID2           = "\x8B",												//Magic number 2
-		    CM            = "\x08",												//Deflate compression type
-		    FLG           = "\x00",												//No extra flags
-		    MTIME         = "\x00\x00\x00\x00",									//Time not available
-		    XFL_MIN       = "\x04",												//Fastest compression level
-		    XFL_MAX       = "\x02",												//Maximum compression level
-		    XFL_OTHER     = "\x00",												//Other compression level
-		    OS            = "\x03",												//Unix OS
-		    LEVEL_DEFAULT = 6,													//Default compression level
-		    LEVEL_MIN     = 1,													//Minimum compression level
-		    LEVEL_MAX     = 9;													//Maximum compression level
+		    ID1           = "\x1F",//Magic number 1
+		    ID2           = "\x8B",//Magic number 2
+		    CM            = "\x08",//Deflate compression type
+		    FLG           = "\x00",//No extra flags
+		    MTIME         = "\x00\x00\x00\x00",//Time not available
+		    XFL_MIN       = "\x04",//Fastest compression level
+		    XFL_MAX       = "\x02",//Maximum compression level
+		    XFL_OTHER     = "\x00",//Other compression level
+		    OS            = "\x03",//Unix OS
+		    LEVEL_DEFAULT = 6,//Default compression level
+		    LEVEL_MIN     = 1,//Minimum compression level
+		    LEVEL_MAX     = 9;//Maximum compression level
+
+		////////////////////////////////////////////////////////////////////////
 
 		/* Private Methods */
 		function intToChars(value, length)
@@ -1972,11 +1983,11 @@
 			return chars;
 		}
 
+		////////////////////////////////////////////////////////////////////////
+
 		/* Public Methods */
 		this.compress = function(data, level)
 		{
-//			console.profile("Gzip Profile");
-			console.time("gzip");
 			var header, cdata, footer,
 			    xfl  = XFL_OTHER,
 			    crc  = intToChars(crc32(data), 4),
@@ -2001,12 +2012,13 @@
 			catch(e){throw e;}
 			footer = crc + size;
 
-//			console.profileEnd();
-			console.timeEnd("gzip");
 			return header + cdata + footer;
 		};
 	}
 
+	/**
+	 * @struct
+	 */
 	var algorithms = {
 		gzip   : {level_default: 6, level_min: 1, level_max: 9, compressorObject: function(){return new Gzip();}},//compressionLevelMin: gzip.min || 1, etc.
 		deflate: {level_default: 6, level_min: 1, level_max: 9, compressorObject: function(){return new Deflate();}}//compressionLevelMin: deflate.min || 1, etc.
