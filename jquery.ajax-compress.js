@@ -1,6 +1,14 @@
+// ==ClosureCompiler==
+// @output_file_name jquery.ajax-compress.min.js
+// @compilation_level SIMPLE_OPTIMIZATIONS
+// @language ECMASCRIPT3
+// ==/ClosureCompiler==
+
 /**
- * @version
- * @author Aaron Papp
+ * @description A plugin for jQuery to compress AJAX request bodies.
+ * @version 1.0.0
+ * @requires jQuery 1.5+
+ * @author Aaron Papp <https://github.com/Aaron-P>
  * @license AJAX Compress; A plugin for jQuery to compress AJAX request bodies.
  * Copyright (C) 2013 Aaron Papp <https://github.com/Aaron-P>
  *
@@ -19,148 +27,163 @@
  */
 
 /**
+ * @description Provides jQuery with a method to compress AJAX request bodies.
+ * @public
  * @param {jQuery} $
  */
 (function($)
 {
 	"use strict";//Should we use this? jQuery itself doesn't due to bugs.
+	/**
+	 * @private
+	 * @constant
+	 */
 	var DEFAULT_COMPRESSION       = "gzip",
 	    DEFAULT_COMPRESSION_LEVEL = 6;//Same as mod_deflate just because.
 
 	/* Start GPLv2 Licensed Code */
 	/**
-	 * @constructor
+	 * @private
+	 * @class
 	 */
 	function Deflate()
 	{
 		/* Private Constants */
-		var WSIZE               = 0x8000;
-		var STORED_BLOCK        = 0;
-		var STATIC_TREES        = 1;
-		var DYN_TREES           = 2;
-		var DEFAULT_LEVEL       = 6;
-		var FULL_SEARCH         = true;
-		var INBUFSIZ            = 0x8000;
-		var INBUF_EXTRA         = 64;
-		var OUTBUFSIZ           = 0x2000;
-		var WINDOW_SIZE         = 2 * WSIZE;
-		var MIN_MATCH           = 3;
-		var MAX_MATCH           = 258;
-		var BITS                = 16;
+		/**
+		 * @private
+		 * @constant
+		 */
+		var WSIZE               = 0x8000,
+		    STORED_BLOCK        = 0,
+		    STATIC_TREES        = 1,
+		    DYN_TREES           = 2,
+		    DEFAULT_LEVEL       = 6,
+		    FULL_SEARCH         = true,
+		    INBUFSIZ            = 0x8000,
+		    INBUF_EXTRA         = 64,
+		    OUTBUFSIZ           = 0x2000,
+		    WINDOW_SIZE         = 2 * WSIZE,
+		    MIN_MATCH           = 3,
+		    MAX_MATCH           = 258,
+		    BITS                = 16,
 		/* SMALL_MEM */
-		var LIT_BUFSIZE         = 0x2000;
-		//var HASH_BITS           = 13;
+		    LIT_BUFSIZE         = 0x2000,
+//		    HASH_BITS           = 13,
 		/* MEDIUM_MEM */
-		//var LIT_BUFSIZE         = 0x4000;
-		//var HASH_BITS           = 14;
+//		    LIT_BUFSIZE         = 0x4000,
+//		    HASH_BITS           = 14,
 		/* BIG_MEM */
-		//var LIT_BUFSIZE         = 0x8000;
-		var HASH_BITS           = 15;
-		var DIST_BUFSIZE        = LIT_BUFSIZE;
-		var HASH_SIZE           = 1 << HASH_BITS;
-		var HASH_MASK           = HASH_SIZE - 1;
-		var WMASK               = WSIZE - 1;
-		var NIL                 = 0;
-		var TOO_FAR             = 4096;
-		var MIN_LOOKAHEAD       = MAX_MATCH + MIN_MATCH + 1;
-		var MAX_DIST            = WSIZE - MIN_LOOKAHEAD;
-		var SMALLEST            = 1;
-		var MAX_BITS            = 15;
-		var MAX_BL_BITS         = 7;
-		var LENGTH_CODES        = 29;
-		var LITERALS            = 256;
-		var END_BLOCK           = 256;
-		var L_CODES             = LITERALS + 1 + LENGTH_CODES;
-		var D_CODES             = 30;
-		var BL_CODES            = 19;
-		var REP_3_6             = 16;
-		var REPZ_3_10           = 17;
-		var REPZ_11_138         = 18;
-		var HEAP_SIZE           = 2 * L_CODES + 1;
-		var H_SHIFT             = ~~((HASH_BITS + MIN_MATCH - 1) / MIN_MATCH);
+//		    LIT_BUFSIZE         = 0x8000,
+		    HASH_BITS           = 15,
+		    DIST_BUFSIZE        = LIT_BUFSIZE,
+		    HASH_SIZE           = 1 << HASH_BITS,
+		    HASH_MASK           = HASH_SIZE - 1,
+		    WMASK               = WSIZE - 1,
+		    NIL                 = 0,
+		    TOO_FAR             = 4096,
+		    MIN_LOOKAHEAD       = MAX_MATCH + MIN_MATCH + 1,
+		    MAX_DIST            = WSIZE - MIN_LOOKAHEAD,
+		    SMALLEST            = 1,
+		    MAX_BITS            = 15,
+		    MAX_BL_BITS         = 7,
+		    LENGTH_CODES        = 29,
+		    LITERALS            = 256,
+		    END_BLOCK           = 256,
+		    L_CODES             = LITERALS + 1 + LENGTH_CODES,
+		    D_CODES             = 30,
+		    BL_CODES            = 19,
+		    REP_3_6             = 16,
+		    REPZ_3_10           = 17,
+		    REPZ_11_138         = 18,
+		    HEAP_SIZE           = 2 * L_CODES + 1,
+		    H_SHIFT             = ~~((HASH_BITS + MIN_MATCH - 1) / MIN_MATCH),
+		    EXTRA_LBITS         = [ 0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  2,  2,  2,  2,  3,  3,  3,  3,  4,  4,  4,  4,  5,  5,  5,  5,  0],
+		    EXTRA_DBITS         = [ 0,  0,  0,  0,  1,  1,  2,  2,  3,  3,  4,  4,  5,  5,  6,  6,  7,  7,  8,  8,  9,  9, 10, 10, 11, 11, 12, 12, 13, 13],
+		    EXTTRA_BLBITS       = [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  3,  7],
+		    BL_ORDER            = [16, 17, 18,  0,  8,  7,  9,  6, 10,  5, 11,  4, 12,  3, 13,  2, 14,  1, 15],
+		    CONFIGURATION_TABLE = [
+				new DeflateConfiguration(   0,    0,    0,    0),
+				new DeflateConfiguration(   4,    4,    8,    4),
+				new DeflateConfiguration(   4,    5,   16,    8),
+				new DeflateConfiguration(   4,    6,   32,   32),
+				new DeflateConfiguration(   4,    4,   16,   16),
+				new DeflateConfiguration(   8,   16,   32,   32),
+				new DeflateConfiguration(   8,   16,  128,  128),
+				new DeflateConfiguration(   8,   32,  128,  256),
+				new DeflateConfiguration(  32,  128,  258, 1024),
+				new DeflateConfiguration(  32,  258,  258, 4096)
+		    ];
 
-		/* Constant Tables */
-		var EXTRA_LBITS         = [ 0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,  2,  2,  2,  2,  3,  3,  3,  3,  4,  4,  4,  4,  5,  5,  5,  5,  0];
-		var EXTRA_DBITS         = [ 0,  0,  0,  0,  1,  1,  2,  2,  3,  3,  4,  4,  5,  5,  6,  6,  7,  7,  8,  8,  9,  9, 10, 10, 11, 11, 12, 12, 13, 13];
-		var EXTTRA_BLBITS       = [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  3,  7];
-		var BL_ORDER            = [16, 17, 18,  0,  8,  7,  9,  6, 10,  5, 11,  4, 12,  3, 13,  2, 14,  1, 15];
-		var CONFIGURATION_TABLE = [
-			new DeflateConfiguration(   0,    0,    0,    0),
-			new DeflateConfiguration(   4,    4,    8,    4),
-			new DeflateConfiguration(   4,    5,   16,    8),
-			new DeflateConfiguration(   4,    6,   32,   32),
-			new DeflateConfiguration(   4,    4,   16,   16),
-			new DeflateConfiguration(   8,   16,   32,   32),
-			new DeflateConfiguration(   8,   16,  128,  128),
-			new DeflateConfiguration(   8,   32,  128,  256),
-			new DeflateConfiguration(  32,  128,  258, 1024),
-			new DeflateConfiguration(  32,  258,  258, 4096)
-		];
+		////////////////////////////////////////////////////////////////////////
 
 		/* Private Variables */
-		var free_queue;
-		var qhead;
-		var qtail;
-		var initflag;
-		var outbuf              = null;//Why?
-		var outcnt;
-		var outoff;
-		var complete;
-		var window;
-		var d_buf;
-		var l_buf;
-		var prev;
-		var bi_buf;
-		var bi_valid;
-		var block_start;
-		var ins_h;
-		var hash_head;
-		var prev_match;
-		var match_available;
-		var match_length;
-		var prev_length;
-		var strstart;
-		var match_start;
-		var eofile;
-		var lookahead;
-		var max_chain_length;
-		var max_lazy_match;
-		var compr_level;
-		var good_match;
-		var nice_match;
-		var dyn_ltree;
-		var dyn_dtree;
-		var static_ltree;
-		var static_dtree;
-		var bl_tree;
-		var l_desc;
-		var d_desc;
-		var bl_desc;
-		var bl_count;
-		var heap;
-		var heap_len;
-		var heap_max;
-		var depth;
-		var length_code;
-		var dist_code;
-		var base_length;
-		var base_dist;
-		var flag_buf;
-		var last_lit;
-		var last_dist;
-		var last_flags;
-		var flags;
-		var flag_bit;
-		var opt_len;
-		var static_len;
-		var deflate_data;
-		var deflate_pos;
+		/**
+		 * @private
+		 */
+		var free_queue,
+		    qhead,
+		    qtail,
+		    initflag,
+		    outbuf = null,//Why?
+		    outcnt,
+		    outoff,
+		    complete,
+		    window,
+		    d_buf,
+		    l_buf,
+		    prev,
+		    bi_buf,
+		    bi_valid,
+		    block_start,
+		    ins_h,
+		    hash_head,
+		    prev_match,
+		    match_available,
+		    match_length,
+		    prev_length,
+		    strstart,
+		    match_start,
+		    eofile,
+		    lookahead,
+		    max_chain_length,
+		    max_lazy_match,
+		    compr_level,
+		    good_match,
+		    nice_match,
+		    dyn_ltree,
+		    dyn_dtree,
+		    static_ltree,
+		    static_dtree,
+		    bl_tree,
+		    l_desc,
+		    d_desc,
+		    bl_desc,
+		    bl_count,
+		    heap,
+		    heap_len,
+		    heap_max,
+		    depth,
+		    length_code,
+		    dist_code,
+		    base_length,
+		    base_dist,
+		    flag_buf,
+		    last_lit,
+		    last_dist,
+		    last_flags,
+		    flags,
+		    flag_bit,
+		    opt_len,
+		    static_len,
+		    deflate_data,
+		    deflate_pos;
 
 		////////////////////////////////////////////////////////////////////////
 
 		/* Private Classes */
 		/**
-		 * @constructor
+		 * @private
+		 * @class
 		 * @struct
 		 */
 		function DeflateCT()
@@ -170,7 +193,8 @@
 		}
 
 		/**
-		 * @constructor
+		 * @private
+		 * @class
 		 * @struct
 		 */
 		function DeflateTreeDesc()
@@ -185,8 +209,13 @@
 		}
 
 		/**
-		 * @constructor
+		 * @private
+		 * @class
 		 * @struct
+		 * @param {Number} good_length
+		 * @param {Number} max_lazy
+		 * @param {Number} nice_length
+		 * @param {Number} max_chain
 		 */
 		function DeflateConfiguration(good_length, max_lazy, nice_length, max_chain)
 		{
@@ -203,7 +232,8 @@
 		}
 
 		/**
-		 * @constructor
+		 * @private
+		 * @class
 		 * @struct
 		 */
 		function DeflateBuffer()
@@ -217,6 +247,11 @@
 		////////////////////////////////////////////////////////////////////////////
 
 		/* Private Methods */
+		/**
+		 * @private
+		 * @param {Number} level
+		 * @throws {Error}
+		 */
 		function deflate_start(level)
 		{
 			var i;
@@ -276,6 +311,9 @@
 			flag_buf    = [];//new Array(parseInt(LIT_BUFSIZE / 8, 10)); .length never called.
 		}
 
+		/**
+		 * @private
+		 */
 		function deflate_end()
 		{
 			free_queue   = null;
@@ -304,12 +342,24 @@
 			flag_buf     = null;
 		}
 
-		function reuse_queue(p)
-		{
-			p.next     = free_queue;
-			free_queue = p;
-		}
+//		/**
+//		 * @private
+//		 * @param {?} p
+//		 * ? = _L24.Deflate.DeflateBuffer
+//		 * How do we declare a custom type?
+//		 */
+//		function reuse_queue(p)
+//		{
+//			p.next     = free_queue;
+//			free_queue = p;
+//		}
 
+		/**
+		 * @private
+		 * @returns {?}
+		 * ? = _L24.Deflate.DeflateBuffer
+		 * How do we declare a custom type?
+		 */
 		function new_queue()
 		{
 			var p;
@@ -327,21 +377,41 @@
 			return p;
 		}
 
-		//function head1(i)
-		//{
-		//	return prev[WSIZE + i];
-		//}
+//		/**
+//		 * @private
+//		 * @param {Number} i
+//		 * @returns {Number}
+//		 */
+//		function head1(i)
+//		{
+//			return prev[WSIZE + i];
+//		}
 
-		//function head2(i, val)
-		//{
-		//	return prev[WSIZE + i] = val;
-		//}
+//		/**
+//		 * @private
+//		 * @param {Number} i
+//		 * @param {Number} val
+//		 * @returns {Number}
+//		 */
+//		function head2(i, val)
+//		{
+//			return prev[WSIZE + i] = val;
+//		}
 
-		//function update_hash(i, val)
-		//{
-		//	i = ((i << H_SHIFT) ^ (val & 0xFF)) & HASH_MASK;
-		//}
+//		/**
+//		 * @private
+//		 * @param {Number} i
+//		 * @param {Number} val
+//		 */
+//		function update_hash(i, val)
+//		{
+//			i = ((i << H_SHIFT) ^ (val & 0xFF)) & HASH_MASK;
+//		}
 
+		/**
+		 * @private
+		 * @param {Number} c
+		 */
 		function put_byte(c)
 		{
 			/*
@@ -355,6 +425,10 @@
 				qoutbuf();
 		}
 
+		/**
+		 * @private
+		 * @param {Number} w
+		 */
 		function put_short(w)
 		{
 			//Output a 16 bit value, lsb first
@@ -371,31 +445,46 @@
 			}
 		}
 
-		//function insert_string()
-		//{
-		//	/*
-		//	 * Insert string s in the dictionary and set match_head to the previous head
-		//	 * of the hash chain (the most recent string with same hash key). Return
-		//	 * the previous length of the hash chain.
-		//	 * IN  assertion: all calls to to insert_string are made with consecutive
-		//	 *    input characters and the first MIN_MATCH bytes of s are valid
-		//	 *    (except for the last MIN_MATCH-1 bytes of the input file).
-		//	 */
-		//	//update_hash(ins_h, window[strstart + MIN_MATCH - 1]);
-		//	ins_h = ((ins_h << H_SHIFT) ^ (window[strstart + MIN_MATCH - 1] & 0xFF)) & HASH_MASK;
-		//	//hash_head = head1(ins_h);
-		//	hash_head = prev[WSIZE + ins_h];
-		//	prev[strstart & WMASK] = hash_head;
-		//	//head2(ins_h, strstart);
-		//	prev[WSIZE + ins_h] = strstart;
-		//}
+//		/**
+//		 * @private
+//		 */
+//		function insert_string()
+//		{
+//			/*
+//			 * Insert string s in the dictionary and set match_head to the previous head
+//			 * of the hash chain (the most recent string with same hash key). Return
+//			 * the previous length of the hash chain.
+//			 * IN  assertion: all calls to to insert_string are made with consecutive
+//			 *    input characters and the first MIN_MATCH bytes of s are valid
+//			 *    (except for the last MIN_MATCH-1 bytes of the input file).
+//			 */
+//			//update_hash(ins_h, window[strstart + MIN_MATCH - 1]);
+//			ins_h = ((ins_h << H_SHIFT) ^ (window[strstart + MIN_MATCH - 1] & 0xFF)) & HASH_MASK;
+//			//hash_head = head1(ins_h);
+//			hash_head = prev[WSIZE + ins_h];
+//			prev[strstart & WMASK] = hash_head;
+//			//head2(ins_h, strstart);
+//			prev[WSIZE + ins_h] = strstart;
+//		}
 
-		//function send_code(c, tree)
-		//{
-		//	//Send a code of the given tree. c and tree must not have side effects
-		//	send_bits(tree[c].fc, tree[c].dl);
-		//}
+//		/**
+//		 * @private
+//		 * @param {Number} c
+//		 * @param {?} tree
+//		 * ? = _L24.Deflate.DeflateCT
+//		 * How do we declare a custom type?
+//		 */
+//		function send_code(c, tree)
+//		{
+//			//Send a code of the given tree. c and tree must not have side effects
+//			send_bits(tree[c].fc, tree[c].dl);
+//		}
 
+		/**
+		 * @private
+		 * @param {Number} dist
+		 * @returns {Number}
+		 */
 		function d_code(dist)
 		{
 			/*
@@ -406,6 +495,15 @@
 			return (dist < 256 ? dist_code[dist] : dist_code[256 + (dist >> 7)]) & 0xFF;
 		}
 
+		/**
+		 * @private
+		 * @param {?} tree
+		 * @param {Number} n
+		 * @param {Number} m
+		 * @returns {Boolean}
+		 * ? = _L24.Deflate.DeflateCT
+		 * How do we declare a custom type?
+		 */
 		function smaller(tree, n, m)
 		{
 			/*
@@ -415,6 +513,13 @@
 			return tree[n].fc < tree[m].fc || (tree[n].fc === tree[m].fc && depth[n] <= depth[m]);
 		}
 
+		/**
+		 * @private
+		 * @param {Array} buff
+		 * @param {Number} offset
+		 * @param {Number} n
+		 * @returns {?number}
+		 */
 		function read_buff(buff, offset, n)
 		{
 			//Read string data
@@ -424,6 +529,10 @@
 			return i;
 		}
 
+		/**
+		 * @private
+		 * @returns {undefined}
+		 */
 		function lm_init()
 		{
 			//Initialize the "longest match" routines for a new file
@@ -470,6 +579,11 @@
 				ins_h = ((ins_h << H_SHIFT) ^ (window[j] & 0xFF)) & HASH_MASK;
 		}
 
+		/**
+		 * @private
+		 * @param {Number} cur_match
+		 * @returns {Number}
+		 */
 		function longest_match(cur_match)
 		{
 			/*
@@ -480,23 +594,20 @@
 			 * IN assertions: cur_match is the head of the hash chain for the current
 			 *   string (strstart) and its distance is <= MAX_DIST, and prev_length >= 1
 			 */
-			var chain_length = max_chain_length;//Max hash chain length
-			var scanp        = strstart;//Current string
-			var best_len     = prev_length;//Best match length so far
-			var matchp;//Matched string
-			var len;//Length of current match
-
+			var chain_length = max_chain_length,//Max hash chain length
+			    scanp        = strstart,//Current string
+			    best_len     = prev_length,//Best match length so far
+			    matchp,//Matched string
+			    len,//Length of current match
 			/*
 			 * Stop when cur_match becomes <= limit. To simplify the code,
 			 * we prevent matches with the string of window index 0.
 			 */
-			var limit     = (strstart > MAX_DIST ? strstart - MAX_DIST : NIL);
-
-			var strendp   = strstart + MAX_MATCH;
-			var scan_end1 = window[scanp + best_len - 1];
-			var scan_end  = window[scanp + best_len];
-
-			var i, broke;
+			    limit     = (strstart > MAX_DIST ? strstart - MAX_DIST : NIL),
+			    strendp   = strstart + MAX_MATCH,
+			    scan_end1 = window[scanp + best_len - 1],
+			    scan_end  = window[scanp + best_len],
+			    i, broke;
 
 			//Do not waste too much time if we already have a good match
 			if (prev_length >= good_match)
@@ -584,6 +695,9 @@
 			return best_len;
 		}
 
+		/**
+		 * @private
+		 */
 		function fill_window()
 		{
 			/*
@@ -594,10 +708,9 @@
 			 *    file reads are performed for at least two bytes (required for the
 			 *    translate_eol option).
 			 */
-			var n, m;
-
+			var n, m,
 			//Amount of free space at the end of the window.
-			var more = WINDOW_SIZE - lookahead - strstart;
+			    more = WINDOW_SIZE - lookahead - strstart;
 
 			/*
 			 * If the window is almost full and there is insufficient lookahead,
@@ -651,6 +764,9 @@
 			}
 		}
 
+		/**
+		 * @private
+		 */
 		function deflate_fast()
 		{
 			/*
@@ -760,6 +876,9 @@
 			}
 		}
 
+		/**
+		 * @private
+		 */
 		function deflate_better()
 		{
 			//Process the input block.
@@ -808,9 +927,8 @@
 				 */
 				if (prev_length >= MIN_MATCH && match_length <= prev_length)
 				{
-					var flush;//Set if current block must be flushed
-
-					flush = ct_tally(strstart - 1 - prev_match, prev_length - MIN_MATCH);
+					//Set if current block must be flushed
+					var flush = ct_tally(strstart - 1 - prev_match, prev_length - MIN_MATCH);
 
 					/*
 					 * Insert in hash table all strings up to the end of the match.
@@ -882,6 +1000,10 @@
 			}
 		}
 
+		/**
+		 * @private
+		 * @returns {undefined}
+		 */
 		function init_deflate()
 		{
 			if (eofile)
@@ -909,6 +1031,13 @@
 			complete = false;
 		}
 
+		/**
+		 * @private
+		 * @param {Array} buff
+		 * @param {Number} off
+		 * @param {Number} buff_size
+		 * @returns {Number}
+		 */
 		function deflate_internal(buff, off, buff_size)
 		{
 			/*
@@ -950,11 +1079,17 @@
 			return n + qcopy(buff, n + off, buff_size - n);
 		}
 
+		/**
+		 * @private
+		 * @param {Array} buff
+		 * @param {Number} off
+		 * @param {Number} buff_size
+		 * @returns {Number}
+		 */
 		function qcopy(buff, off, buff_size)
 		{
-			var n, i, j;
+			var n = 0, i, j;
 
-			n = 0;
 			while (qhead !== null && n < buff_size)
 			{
 				i = buff_size - n;
@@ -968,10 +1103,11 @@
 				n += i;
 				if (qhead.len === 0)
 				{
-					var p;
-					p = qhead;
+					var p = qhead;
 					qhead = qhead.next;
-					reuse_queue(p);
+					//reuse_queue(p);
+					p.next     = free_queue;
+					free_queue = p;
 				}
 			}
 
@@ -993,6 +1129,10 @@
 			return n;
 		}
 
+		/**
+		 * @private
+		 * @returns {undefined}
+		 */
 		function ct_init()
 		{
 			/*
@@ -1000,11 +1140,11 @@
 			 * location of the internal file attribute (ascii/binary) and method
 			 * (DEFLATE/STORE).
 			 */
-			var n;//Iterates over tree elements
-			var bits;//Bit counter
-			var length;//Length value
-			var code;//Code value
-			var dist;//Distance index
+			var n,//Iterates over tree elements
+			    bits,//Bit counter
+			    length,//Length value
+			    code,//Code value
+			    dist;//Distance index
 
 			if (static_dtree[0].dl !== 0)
 				return;//ct_init already called
@@ -1107,6 +1247,9 @@
 			init_block();
 		}
 
+		/**
+		 * @private
+		 */
 		function init_block()
 		{
 			//Initialize a new block.
@@ -1127,6 +1270,11 @@
 			flag_bit = 1;
 		}
 
+		/**
+		 * @private
+		 * @param {Array} tree
+		 * @param {Number} k
+		 */
 		function pqdownheap(tree, k)
 		{
 			/*
@@ -1138,8 +1286,8 @@
 			 * @param tree- tree to restore
 			 * @param k- node to move down
 			 */
-			var v = heap[k];
-			var j = k << 1;//Left son of k
+			var v = heap[k],
+			    j = k << 1;//Left son of k
 
 			while (j <= heap_len)
 			{
@@ -1161,6 +1309,13 @@
 			heap[k] = v;
 		}
 
+		/**
+		 * @private
+		 * @param {?} desc
+		 * @returns {unresolved}
+		 * ? = _L24.Deflate.DeflateTreeDesc
+		 * How do we declare a custom type?
+		 */
 		function gen_bitlen(desc)
 		{//The tree descriptor
 			/*
@@ -1173,18 +1328,18 @@
 			 *     The length opt_len is updated; static_len is also updated if stree is
 			 *     not null.
 			 */
-			var tree       = desc.dyn_tree;
-			var extra      = desc.extra_bits;
-			var base       = desc.extra_base;
-			var max_code   = desc.max_code;
-			var max_length = desc.max_length;
-			var stree      = desc.static_tree;
-			var overflow   = 0;//Number of elements with bit length too large
-			var h;//Heap index
-			var n, m;//Iterate over the tree elements
-			var bits;//Bit length
-			var xbits;//Extra bits
-			var f;//Frequency
+			var tree       = desc.dyn_tree,
+			    extra      = desc.extra_bits,
+			    base       = desc.extra_base,
+			    max_code   = desc.max_code,
+			    max_length = desc.max_length,
+			    stree      = desc.static_tree,
+			    overflow   = 0,//Number of elements with bit length too large
+			    h,//Heap index
+			    n, m,//Iterate over the tree elements
+			    bits,//Bit length
+			    xbits,//Extra bits
+			    f;//Frequency
 
 			for (bits = 0; bits <= MAX_BITS; bits++)
 				bl_count[bits] = 0;
@@ -1265,6 +1420,13 @@
 			}
 		}
 
+		/**
+		 * @private
+		 * @param {?} tree
+		 * @param {Number} max_code
+		 * ? = _L24.Deflate.DeflateCT
+		 * How do we declare a custom type?
+		 */
 		function gen_codes(tree, max_code)
 		{
 			/*
@@ -1277,10 +1439,10 @@
 			 * @param tree- the tree to decorate
 			 * @param max_code- largest code with non-zero frequency
 			 */
-			var next_code = [];//Next code value for each bit length. new Array(MAX_BITS + 1); .length never called
-			var code      = 0;//Running code value
-			var bits;//Bit index
-			var n;//Code index
+			var next_code = [],//Next code value for each bit length. new Array(MAX_BITS + 1); .length never called
+			    code      = 0,//Running code value
+			    bits,//Bit index
+			    n;//Code index
 
 			/*
 			 * The distribution counts are first used to generate the code values
@@ -1306,6 +1468,12 @@
 			}
 		}
 
+		/**
+		 * @private
+		 * @param {?} desc
+		 * ? = _L24.Deflate.DeflateTreeDesc
+		 * How do we declare a custom type?
+		 */
 		function build_tree(desc)
 		{//The tree descriptor
 			/*
@@ -1316,12 +1484,12 @@
 			 *     and corresponding code. The length opt_len is updated; static_len is
 			 *     also updated if stree is not null. The field max_code is set.
 			 */
-			var tree = desc.dyn_tree;
-			var stree = desc.static_tree;
-			var elems = desc.elems;
-			var n, m;//Iterate over heap elements
-			var max_code = -1;//Largest code with non zero frequency
-			var node = elems;//Next internal node of the tree
+			var tree = desc.dyn_tree,
+			    stree = desc.static_tree,
+			    elems = desc.elems,
+			    n, m,//Iterate over heap elements
+			    max_code = -1,//Largest code with non zero frequency
+			    node = elems;//Next internal node of the tree
 
 			/*
 			 * Construct the initial heap, with least frequent element in
@@ -1410,6 +1578,13 @@
 			gen_codes(tree, max_code);
 		}
 
+		/**
+		 * @private
+		 * @param {?} tree
+		 * @param {Number} max_code
+		 * ? = _L24.Deflate.DeflateCT
+		 * How do we declare a custom type?
+		 */
 		function scan_tree(tree, max_code)
 		{
 			/*
@@ -1421,13 +1596,13 @@
 			 * @param tree- the tree to be scanned
 			 * @param max_code- and its largest code of non zero frequency
 			 */
-			var n;//Iterates over all tree elements
-			var curlen;//Length of current code
-			var prevlen   = -1;//Last emitted length
-			var nextlen   = tree[0].dl;//Length of next code
-			var count     = 0;//Eepeat count of the current code
-			var max_count = 7;//Max repeat count
-			var min_count = 4;//Min repeat count
+			var n,//Iterates over all tree elements
+			    curlen,//Length of current code
+			    prevlen   = -1,//Last emitted length
+			    nextlen   = tree[0].dl,//Length of next code
+			    count     = 0,//Eepeat count of the current code
+			    max_count = 7,//Max repeat count
+			    min_count = 4;//Min repeat count
 
 			if (nextlen === 0)
 			{
@@ -1474,6 +1649,13 @@
 			}
 		}
 
+		/**
+		 * @private
+		 * @param {?} tree
+		 * @param {Number} max_code
+		 * ? = _L24.Deflate.DeflateCT
+		 * How do we declare a custom type?
+		 */
 		function send_tree(tree, max_code)
 		{
 			/*
@@ -1483,13 +1665,13 @@
 			 * @param tree- the tree to be scanned
 			 * @param max_code- and its largest code of non zero frequency
 			 */
-			var n;//Iterates over all tree elements
-			var curlen;//Length of current code
-			var prevlen   = -1;//Last emitted length
-			var nextlen   = tree[0].dl;//Length of next code
-			var count     = 0;//Repeat count of the current code
-			var max_count = 7;//Max repeat count
-			var min_count = 4;//Min repeat count
+			var n,//Iterates over all tree elements
+			    curlen,//Length of current code
+			    prevlen   = -1,//Last emitted length
+			    nextlen   = tree[0].dl,//Length of next code
+			    count     = 0,//Repeat count of the current code
+			    max_count = 7,//Max repeat count
+			    min_count = 4;//Min repeat count
 
 			//tree[max_code+1].dl = -1;
 			//Guard already set
@@ -1558,6 +1740,10 @@
 			}
 		}
 
+		/**
+		 * @private
+		 * @returns {Number}
+		 */
 		function build_bl_tree()
 		{
 			/*
@@ -1593,6 +1779,12 @@
 			return max_blindex;
 		}
 
+		/**
+		 * @private
+		 * @param {Number} lcodes
+		 * @param {Number} dcodes
+		 * @param {Number} blcodes
+		 */
 		function send_all_trees(lcodes, dcodes, blcodes)
 		{//Number of codes for each tree
 			/*
@@ -1615,16 +1807,20 @@
 			send_tree(dyn_dtree, dcodes - 1);
 		}
 
+		/**
+		 * @private
+		 * @param {Number} eof
+		 */
 		function flush_block(eof)
 		{//True if this is the last block for a file
 			/*
 			 * Determine the best encoding for the current block: dynamic trees, static
 			 * trees or store, and output the encoded block to the zip file.
 			 */
-			var opt_lenb, static_lenb;//opt_len and static_len in bytes
-			var max_blindex;//Index of last bit length code of non zero freq
-			var stored_len;//Length of input block
-			var i;
+			var opt_lenb, static_lenb,//opt_len and static_len in bytes
+			    max_blindex,//Index of last bit length code of non zero freq
+			    stored_len,//Length of input block
+			    i;
 
 			stored_len = strstart - block_start;
 			flag_buf[last_flags] = flags;//Save the flags for the last 8 items
@@ -1685,6 +1881,12 @@
 				bi_windup();
 		}
 
+		/**
+		 * @private
+		 * @param {Number} dist
+		 * @param {Number} lc
+		 * @returns {Boolean}
+		 */
 		function ct_tally(dist, lc)
 		{
 			/*
@@ -1722,9 +1924,9 @@
 			if (compr_level > 2 && (last_lit & 0xFFF) === 0)
 			{
 				//Compute an upper bound for the compressed length
-				var out_length = last_lit * 8;
-				var in_length = strstart - block_start;
-				var dcode;
+				var out_length = last_lit * 8,
+				    in_length = strstart - block_start,
+				    dcode;
 
 				for (dcode = 0; dcode < D_CODES; dcode++)
 					out_length += dyn_dtree[dcode].fc * (5 + EXTRA_DBITS[dcode]);
@@ -1740,6 +1942,13 @@
 			 */
 		}
 
+		/**
+		 * @private
+		 * @param {?} ltree
+		 * @param {?} dtree
+		 * ? = _L24.Deflate.DeflateCT
+		 * How do we declare a custom type?
+		 */
 		function compress_block(ltree, dtree)
 		{
 			/*
@@ -1748,14 +1957,14 @@
 			 * @param ltree- literal tree
 			 * @param dtree- distance tree
 			 */
-			var dist;//Distance of matched string
-			var lc;//Match length or unmatched char (if dist === 0)
-			var lx   = 0;//Running index in l_buf
-			var dx   = 0;//Running index in d_buf
-			var fx   = 0;//Running index in flag_buf
-			var flag = 0;//Current flags
-			var code;//The code to send
-			var extra;//Number of extra bits to send
+			var dist,//Distance of matched string
+			    lc,//Match length or unmatched char (if dist === 0)
+			    lx   = 0,//Running index in l_buf
+			    dx   = 0,//Running index in d_buf
+			    fx   = 0,//Running index in flag_buf
+			    flag = 0,//Current flags
+			    code,//The code to send
+			    extra;//Number of extra bits to send
 
 			if (last_lit !== 0)
 			{
@@ -1801,6 +2010,11 @@
 			send_bits(ltree[END_BLOCK].fc, ltree[END_BLOCK].dl);
 		}
 
+		/**
+		 * @private
+		 * @param {Number} value
+		 * @param {Number} length
+		 */
 		function send_bits(value, length)
 		{
 			/*
@@ -1830,6 +2044,12 @@
 			}
 		}
 
+		/**
+		 * @private
+		 * @param {Number} code
+		 * @param {Number} len
+		 * @returns {Number}
+		 */
 		function bi_reverse(code, len)
 		{
 			/*
@@ -1851,6 +2071,9 @@
 			return res >> 1;
 		}
 
+		/**
+		 * @private
+		 */
 		function bi_windup()
 		{
 			//Write out any remaining bits in an incomplete byte.
@@ -1862,6 +2085,9 @@
 			bi_valid = 0;
 		}
 
+		/**
+		 * @private
+		 */
 		function qoutbuf()
 		{
 			var q, i;
@@ -1882,6 +2108,14 @@
 		////////////////////////////////////////////////////////////////////////
 
 		/* Public Methods */
+		/**
+		 * @description A method to compress data into the Deflate format.
+		 * @public
+		 * @param {String} data
+		 * @param {Number} level
+		 * @returns {String}
+		 * @example var cdata = compress("example data", 6);
+		 */
 		this.compress = function(data, level)
 		{
 			console.time("deflate");
@@ -1911,19 +2145,32 @@
 
 	/* Start MIT Licensed Code */
 	/**
-	 * @constructor
+	 * @private
+	 * @class
+	 * @returns {?}
 	 */
 	function CRC32()
 	{
 		/* Private Constants */
+		/**
+		 * @private
+		 * @constant
+		 */
 		var POLYNOMIAL = 0xEDB88320;
 
 		////////////////////////////////////////////////////////////////////////
 
 		/* Public Methods */
+		/**
+		 * @description A method to calculate the crc32 checksum of a string.
+		 * @public
+		 * @param {String} data
+		 * @returns {?number}
+		 * @example var crc = crc32("example data");
+		 * Number|_L24.CRC32.crc32.temp|_L24.CRC32.crc32.crc
+		 */
 		this.crc32 = function(data)
 		{
-			console.time("crc32");
 			var crc = -1,//Initial contents of LFBSR.
 				i, j, l, temp;
 
@@ -1939,7 +2186,7 @@
 				}
 				crc = (crc >>> 8) ^ temp;
 			}
-			console.timeEnd("crc32");
+
 			return ((crc ^ -1) >>> 0);//Flip the bits of the CRC.
 		};
 
@@ -1949,11 +2196,17 @@
 	/* End MIT Licensed Code */
 
 	/**
-	 * @constructor
+	 * @private
+	 * @class
+	 * @returns {?}
 	 */
 	function Gzip()
 	{
 		/* Private Constants */
+		/**
+		 * @private
+		 * @constant
+		 */
 		var crc32         = new CRC32(),
 		    deflate       = new Deflate(),
 		    ID1           = "\x1F",//Magic number 1
@@ -1972,6 +2225,13 @@
 		////////////////////////////////////////////////////////////////////////
 
 		/* Private Methods */
+		/**
+		 * @description A method to convert a number into a byte string.
+		 * @private
+		 * @param {Number} value
+		 * @param {Number} length
+		 * @returns {String}
+		 */
 		function intToChars(value, length)
 		{
 			var chars = "";
@@ -1986,6 +2246,15 @@
 		////////////////////////////////////////////////////////////////////////
 
 		/* Public Methods */
+		/**
+		 * @description A method to compress data into the GZip format.
+		 * @public
+		 * @param {String} data
+		 * @param {Number} level
+		 * @returns {String}
+		 * @example var cdata = compress("example data", 6);
+		 * _L24.Gzip.compress.size|String|_L24.Gzip.compress.crc
+		 */
 		this.compress = function(data, level)
 		{
 			var header, cdata, footer,
@@ -2017,12 +2286,19 @@
 	}
 
 	/**
+	 * @description A list of supported compression types with minimum, maximum,
+	 *              and default compression levels and a method to instantiate
+	 *              the compressor object.
+	 * @private
+	 * @constant
 	 * @struct
 	 */
 	var algorithms = {
 		gzip   : {level_default: 6, level_min: 1, level_max: 9, compressorObject: function(){return new Gzip();}},//compressionLevelMin: gzip.min || 1, etc.
 		deflate: {level_default: 6, level_min: 1, level_max: 9, compressorObject: function(){return new Deflate();}}//compressionLevelMin: deflate.min || 1, etc.
 	};
+
+	////////////////////////////////////////////////////////////////////////////
 
 	$.ajaxPrefilter(function(options, originalOptions, jqXHR)
 	{
