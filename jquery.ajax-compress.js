@@ -2118,8 +2118,7 @@
 		 */
 		this.compress = function(data, level)
 		{
-			console.time("deflate");
-			console.profile("Deflate Profile");
+//			console.profile("Deflate Profile");
 			var i, j, buff, out = "";
 
 			deflate_data = data;
@@ -2136,8 +2135,7 @@
 					out += String.fromCharCode(buff[j]);
 			}
 			deflate_data = null;//G.C.
-			console.profileEnd();
-			console.timeEnd("deflate");
+//			console.profileEnd();
 			return out;
 		};
 	}
