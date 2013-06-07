@@ -34,6 +34,11 @@
 (function($)
 {
 	"use strict";//Should we use this? jQuery itself doesn't due to bugs.
+
+	if ($.fn.ajaxCompress)//Prevent double-loading.
+		return;
+	$.fn.ajaxCompress = true;
+
 	/**
 	 * @private
 	 * @constant
