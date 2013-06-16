@@ -9,6 +9,16 @@
  * @version 1.0.0
  * @requires jQuery 1.5+
  * @author Aaron Papp <https://github.com/Aaron-P>
+ * @example $.ajax({
+ *     url: "example.php",
+ *     type: "POST",
+ *     data: {
+ *         foo: "bar"
+ *     },
+ *     compress: true,
+ *     compressionType: "gzip",
+ *     compressionLevel: 6
+ * });
  * @license AJAX Compress; A plugin for jQuery to compress AJAX request bodies.
  * Copyright (C) 2013 Aaron Papp <https://github.com/Aaron-P>
  *
@@ -35,9 +45,9 @@
 {
 	"use strict";//Should we use this? jQuery itself doesn't due to bugs.
 
-	if ($.fn.ajaxCompress)//Prevent double-loading.
+	if ($.ajaxCompress)//Prevent double-loading.
 		return;
-	$.fn.ajaxCompress = true;
+	$.ajaxCompress = true;
 
 	/**
 	 * @private
